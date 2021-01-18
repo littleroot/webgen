@@ -174,8 +174,8 @@ func errDisallowedRefName(path, ref string) error {
 	return fmt.Errorf("%s: ref name %q disallowed (reserved for internal use)", path, ref)
 }
 
-func errRepeatedRefName(path, ref, tagName string) error {
-	return fmt.Errorf("%s: ref name %q is present multiple times (previous occurence in <%s>)", path, ref, tagName)
+func errRepeatedRefName(path, ref, prevTagName string) error {
+	return fmt.Errorf("%s: ref name %q present multiple times (previous occurence in <%s>)", path, ref, prevTagName)
 }
 
 func (g *generator) generateComponent(in io.Reader, path string, history *orderedSet) (err error) {
