@@ -282,6 +282,7 @@ tokenizeView:
 	io.Copy(&g.viewsBuf, &funcBuf)
 
 	if insideStyle {
+		// TODO: write CSS
 		// TODO: write the CSS filename to make it easy to know where
 		// the generated CSS originates from.
 		var css bytes.Buffer
