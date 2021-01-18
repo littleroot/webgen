@@ -433,7 +433,8 @@ func writeTypeDefinition(w io.Writer, typeName string, refs map[string]TagAndVar
 	fmt.Fprint(w, "}\n\n")
 }
 
-// varNames returns successive variable names to use in a component.
+// varNames returns successive variable names to use in a component's
+// "constructor" function.
 type varNames struct {
 	m map[string]int
 }
