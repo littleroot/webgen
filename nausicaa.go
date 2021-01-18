@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
+	"go/token"
 	"io"
 	"os"
 	"path/filepath"
@@ -160,8 +161,8 @@ func (g *generator) generateOneFile(path string, history *orderedSet) error {
 	return nil
 }
 
-var disallowedRefNames = map[string]struct{}{
-	"roots": {},
+func isDisallowedRefName(name string) bool {
+	return token.IsKeyword(name) || name == "roots"
 }
 
 type tagAndVarAndTypeName struct {
@@ -171,7 +172,7 @@ type tagAndVarAndTypeName struct {
 }
 
 func errDisallowedRefName(path, ref string) error {
-	return fmt.Errorf("%s: ref name %q disallowed (reserved for internal use)", path, ref)
+	return fmt.Errorf("%s: ref name %q disallowed", path, ref)
 }
 
 func errRepeatedRefName(path, ref, prevTagName string) error {
@@ -195,7 +196,7 @@ func (g *generator) generateComponent(in io.Reader, path string, history *ordere
 	funcName := constructorFuncName(typeName)
 
 	var funcBuf bytes.Buffer
-	fmt.Fprintf(&funcBuf, "func %s() *%s {", funcName, typeName)
+	fmt.Fprintf(&funcBuf, "func %s() *%s {\n", funcName, typeName)
 
 	z := html.NewTokenizer(in)
 	namer := newVarNames()
@@ -272,7 +273,7 @@ tokenizeView:
 	}
 
 	writeReturn(&funcBuf, typeName, refs, roots)
-	fmt.Fprint(&funcBuf, "}\n\n")
+	fmt.Fprint(&funcBuf, "\n}\n\n")
 
 	// Add this view's output to the overall output.
 	writeTypeDefinition(&g.viewsBuf, typeName, refs)
@@ -307,7 +308,7 @@ func (g *generator) handleStartRegular(w io.Writer, z *html.Tokenizer,
 	err := attrsFunc(z, hasAttr, func(k, v []byte) error {
 		if equalsRef(k) {
 			v := string(v)
-			if _, ok := disallowedRefNames[v]; ok {
+			if isDisallowedRefName(v) {
 				return errDisallowedRefName(path, v)
 			}
 			ex, ok := refs[v]
@@ -347,7 +348,7 @@ func (g *generator) handleStartInclude(w io.Writer, z *html.Tokenizer,
 
 		if isRef {
 			val := string(v)
-			if _, ok := disallowedRefNames[val]; ok {
+			if isDisallowedRefName(val) {
 				return errDisallowedRefName(path, val)
 			}
 			refAttrVal = val
@@ -411,7 +412,7 @@ func (*generator) handleEndToken(w io.Writer, tagName, varName string, names *st
 }
 
 func writeReturn(w io.Writer, typeName string, refs map[string]tagAndVarAndTypeName, roots []string) {
-	fmt.Fprintf(w, "\n\nreturn &%s{\n", typeName)
+	fmt.Fprintf(w, "return &%s{\n", typeName)
 	for k, r := range refs {
 		fmt.Fprintf(w, "%s: %s,\n", k, r.VarName)
 	}
@@ -420,7 +421,7 @@ func writeReturn(w io.Writer, typeName string, refs map[string]tagAndVarAndTypeN
 }
 
 func writeTypeDefinition(w io.Writer, typeName string, refs map[string]tagAndVarAndTypeName) {
-	fmt.Fprintf(w, "type %s struct {", typeName)
+	fmt.Fprintf(w, "type %s struct {\n", typeName)
 	for k, v := range refs {
 		typeName := "*dom.Element" // TODO: make this more specific (like *html.HTMLDomElement)
 		if v.TypeName != "" {
@@ -428,7 +429,6 @@ func writeTypeDefinition(w io.Writer, typeName string, refs map[string]tagAndVar
 		}
 		fmt.Fprintf(w, "%s %s\n", k, typeName)
 	}
-	fmt.Fprint(w, "\n")
 	fmt.Fprint(w, "roots []*dom.Element\n")
 	fmt.Fprint(w, "}\n\n")
 }
