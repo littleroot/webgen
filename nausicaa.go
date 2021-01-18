@@ -179,7 +179,7 @@ func (g *generator) generateComponent(in io.Reader, path string, history *ordere
 	funcName := constructorFuncName(typeName)
 
 	var funcBuf bytes.Buffer
-	fmt.Fprintf(&funcBuf, "func %s() *Foo {", funcName)
+	fmt.Fprintf(&funcBuf, "func %s() *%s {", funcName, typeName)
 
 	z := html.NewTokenizer(in)
 	namer := newVarNames()
