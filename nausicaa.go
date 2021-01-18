@@ -150,7 +150,7 @@ func (g *generator) generateOneFile(path string, history *orderedSet) error {
 
 	err = g.generateComponent(f, path, history)
 	if err != nil {
-		return fmt.Errorf("%s: %s", path, err)
+		return err
 	}
 
 	g.generated[path] = struct{}{}
@@ -167,9 +167,17 @@ type TagAndVarAndTypeName struct {
 	TypeName string
 }
 
+func errDisallowedRefName(path, ref string) error {
+	return fmt.Errorf("%s: ref name %q disallowed (reserved for internal use)", path, ref)
+}
+
+func errRepeatedRefName(path, ref, tagName string) error {
+	return fmt.Errorf("%s: ref name %q is present multiple times (previous occurence in <%s>)", path, ref, tagName)
+}
+
 func (g *generator) generateComponent(in io.Reader, path string, history *orderedSet) (err error) {
 	if history.has(path) {
-		return fmt.Errorf("cycle in include paths") // TODO
+		return fmt.Errorf("%s: cycle in include paths", path)
 	}
 
 	history.add(path)
@@ -250,9 +258,7 @@ tokenizeView:
 			g.handleEndToken(&funcBuf, tagName, varName, &names,
 				func(root string) { roots = append(roots, root) })
 
-		case html.CommentToken:
-			// ignore
-		case html.DoctypeToken:
+		case html.CommentToken, html.DoctypeToken:
 			// ignore
 		}
 	}
@@ -283,11 +289,11 @@ func (g *generator) handleStartToken(w io.Writer, z *html.Tokenizer,
 	if tagName == "include" {
 		return g.handleStartInclude(w, z, path, tagName, varName, hasAttr, refs, history)
 	}
-	return g.handleStartRegular(w, z, tagName, varName, hasAttr, refs)
+	return g.handleStartRegular(w, z, path, tagName, varName, hasAttr, refs)
 }
 
 func (g *generator) handleStartRegular(w io.Writer, z *html.Tokenizer,
-	tagName, varName string, hasAttr bool,
+	path, tagName, varName string, hasAttr bool,
 	refs map[string]TagAndVarAndTypeName) error {
 
 	fmt.Fprintf(w, "%s := _document.CreateElement(%q, nil)\n", varName, tagName)
@@ -295,11 +301,11 @@ func (g *generator) handleStartRegular(w io.Writer, z *html.Tokenizer,
 		if equalsRef(k) {
 			v := string(v)
 			if _, ok := disallowedRefNames[v]; ok {
-				return fmt.Errorf("ref name %q disallowed (reserved for internal use)", v)
+				return errDisallowedRefName(path, v)
 			}
 			ex, ok := refs[v]
 			if ok {
-				return fmt.Errorf("ref name %q appears multiple times in component (previous occurence in <%s>)", v, ex.TagName)
+				return errRepeatedRefName(path, v, ex.TagName)
 			}
 			refs[v] = TagAndVarAndTypeName{tagName, varName, ""}
 			return nil
@@ -329,33 +335,37 @@ func (g *generator) handleStartInclude(w io.Writer, z *html.Tokenizer,
 
 		// validate attributes
 		if !isRef && !isPath {
-			return fmt.Errorf("<include> specifies invalid attribute %q", k)
+			return fmt.Errorf("%s: <include> specifies invalid attribute %q", path, k)
 		}
 
 		if isRef {
-			if _, ok := disallowedRefNames[string(v)]; ok {
-				return fmt.Errorf("ref name %q disallowed (reserved for internal use)", v)
+			val := string(v)
+			if _, ok := disallowedRefNames[val]; ok {
+				return errDisallowedRefName(path, val)
 			}
-			refAttrVal = string(v)
-		} else {
-			foundPathAttr = true
-
-			v := string(v)
-			var includePath string
-			if filepath.IsAbs(v) {
-				includePath = filepath.Join(g.opts.Root, v)
-			} else {
-				includePath = filepath.Join(filepath.Dir(path), v)
-			}
-			err := g.generateOneFile(includePath, history)
-			if err != nil {
-				return err
-			}
-			// ... successfully included; append it
-			includeTypeName = componentTypeName(filepath.Base(includePath))
-			includeConstructorFuncName := constructorFuncName(includeTypeName)
-			fmt.Fprintf(w, "%s := %s()\n", varName, includeConstructorFuncName)
+			refAttrVal = val
+			return nil
 		}
+
+		foundPathAttr = true
+		val := string(v)
+
+		var includePath string
+		if filepath.IsAbs(val) {
+			includePath = filepath.Join(g.opts.Root, val)
+		} else {
+			includePath = filepath.Join(filepath.Dir(path), val)
+		}
+
+		err := g.generateOneFile(includePath, history)
+		if err != nil {
+			return err
+		}
+
+		// ... successfully included; construct it
+		includeTypeName = componentTypeName(filepath.Base(includePath))
+		includeConstructorFuncName := constructorFuncName(includeTypeName)
+		fmt.Fprintf(w, "%s := %s()\n", varName, includeConstructorFuncName)
 		return nil
 	})
 
@@ -364,12 +374,12 @@ func (g *generator) handleStartInclude(w io.Writer, z *html.Tokenizer,
 	}
 
 	if !foundPathAttr {
-		return fmt.Errorf("missing required \"path\" attribute in <include>")
+		return fmt.Errorf("%s: missing required \"path\" attribute in <include>", path)
 	}
 	if refAttrVal != "" {
 		ex, ok := refs[refAttrVal]
 		if ok {
-			return fmt.Errorf("ref name %q appears multiple times in component (previous occurence in <%s>)", refAttrVal, ex.TagName)
+			return errRepeatedRefName(path, refAttrVal, ex.TagName)
 		}
 		refs[refAttrVal] = TagAndVarAndTypeName{tagName, varName, includeTypeName}
 	}
