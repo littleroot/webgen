@@ -3,8 +3,10 @@ package nausicaa
 import (
 	"bytes"
 	"fmt"
+	"go/format"
 	"html/template"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,15 +16,20 @@ import (
 	"golang.org/x/net/html"
 )
 
-type stack struct {
-	s []string
+type TagAndVarName struct {
+	TagName string
+	VarName string
 }
 
-func (st *stack) push(v string) {
+type stack struct {
+	s []TagAndVarName
+}
+
+func (st *stack) push(v TagAndVarName) {
 	st.s = append(st.s, v)
 }
 
-func (st *stack) pop() string {
+func (st *stack) pop() TagAndVarName {
 	v := st.s[len(st.s)-1]
 	st.s = st.s[:len(st.s)-1]
 	return v
@@ -32,9 +39,9 @@ func (st *stack) len() int {
 	return len(st.s)
 }
 
-func (st *stack) peek() (string, bool) {
+func (st *stack) peek() (TagAndVarName, bool) {
 	if st.len() == 0 {
-		return "", false
+		return TagAndVarName{}, false
 	}
 	return st.s[len(st.s)-1], true
 }
@@ -110,26 +117,27 @@ func (g *generator) run(input []string) ([]byte, []byte, error) {
 	}
 
 	for _, p := range input {
-		err := g.generateOneFile(p)
+		err := g.generateOneFile(p, newOrderedSet())
 		if err != nil {
 			return nil, nil, err
 		}
 	}
 
-	// // Run through gofmt-style formatting.
-	// views, err := format.Source(g.viewsBuf.Bytes())
-	// if err != nil {
-	// 	panic(err) // code bug: we may have generated bad code
-	// }
-	// css, err := format.Source(g.cssBuf.Bytes())
-	// if err != nil {
-	// 	panic(err) // code bug: we may have generated bad code
-	// }
+	// return g.viewsBuf.Bytes(), g.cssBuf.Bytes(), nil
 
-	return g.viewsBuf.Bytes(), g.cssBuf.Bytes(), nil
+	// Run through gofmt-style formatting.
+	views, err := format.Source(g.viewsBuf.Bytes())
+	if err != nil {
+		panic(err) // code bug: we may have generated bad code
+	}
+	css, err := format.Source(g.cssBuf.Bytes())
+	if err != nil {
+		panic(err) // code bug: we may have generated bad code
+	}
+	return views, css, nil
 }
 
-func (g *generator) generateOneFile(path string) error {
+func (g *generator) generateOneFile(path string, history *orderedSet) error {
 	_, ok := g.seen[path]
 	if ok {
 		return nil // already generated
@@ -141,7 +149,7 @@ func (g *generator) generateOneFile(path string) error {
 	}
 	defer f.Close()
 
-	err = g.generateComponent(f, path, newOrderedSet())
+	err = g.generateComponent(f, path, history)
 	if err != nil {
 		return err
 	}
@@ -150,9 +158,19 @@ func (g *generator) generateOneFile(path string) error {
 	return nil
 }
 
+var disallowedRefs = map[string]struct{}{
+	"roots": {},
+}
+
+type TagAndVarAndTypeName struct {
+	TagName  string
+	VarName  string
+	TypeName string
+}
+
 func (g *generator) generateComponent(in io.Reader, path string, history *orderedSet) (err error) {
 	if history.has(path) {
-		panic("import cycle") // TODO
+		return fmt.Errorf("cyclical include") // TODO
 	}
 
 	history.add(path)
@@ -161,16 +179,15 @@ func (g *generator) generateComponent(in io.Reader, path string, history *ordere
 	typeName := componentTypeName(filepath.Base(path))
 	funcName := constructorFuncName(typeName)
 
-	var typeBuf, funcBuf bytes.Buffer
-	typeBuf.WriteString(fmt.Sprintf("type %s struct {\n", typeName))
-	funcBuf.WriteString(fmt.Sprintf("func %s() {\n", funcName))
-
-	namer := newVarNames()
-	_ = namer
+	var funcBuf bytes.Buffer
+	fmt.Fprintf(&funcBuf, "func %s() *Foo {\n", funcName)
 
 	z := html.NewTokenizer(in)
-	var names stack
+	namer := newVarNames()
+	var names stack // also used to determine depth
 	var inStyle bool
+	refs := make(map[string]TagAndVarAndTypeName) // ref attribute value -> names
+	addNewline := false                           // cosmetic whitespace
 
 tokenizeView:
 	for {
@@ -184,6 +201,7 @@ tokenizeView:
 
 		case html.TextToken:
 			if names.len() == 0 {
+				// text node without parent
 				// TODO: log a warning?
 				continue
 			}
@@ -191,33 +209,118 @@ tokenizeView:
 			if len(text) == 0 {
 				continue
 			}
-			parentName, _ := names.peek()
-			strName := namer.next("_stringliteral")
+			parent, _ := names.peek()
+			strName := namer.next("stringliteral")
 			fmt.Fprintf(&funcBuf, "const %s = %q\n", strName, text)
-			fmt.Fprintf(&funcBuf, "%s.SetTextContent(&%s)\n", parentName, strName)
+			fmt.Fprintf(&funcBuf, "%s.SetTextContent(&%s)\n", parent.VarName, strName)
 
 		case html.StartTagToken:
-			tn, _ := z.TagName()
+			tn, hasAttr := z.TagName()
+			tagName := string(tn)
+			varName := namer.next(tagName)
 
-			name := namer.next(string(tn))
-			names.push(name)
-
-			if isStyleTag(tn) {
+			if tagName == "style" && names.len() == 0 {
+				names.push(TagAndVarName{tagName, varName})
 				inStyle = true
 				break tokenizeView
 			}
 
-			if isIncludeTag(tn) {
+			names.push(TagAndVarName{tagName, varName})
+			if !addNewline {
+				addNewline = true
+			} else {
+				fmt.Fprint(&funcBuf, "\n")
 			}
 
-			fmt.Fprintf(&funcBuf, "%s = __document.CreateElement(%q, nil)\n", name, tn)
-			// TODO: attrs
+			if tagName == "include" {
+				var foundPathAttr bool
+				var refAttrVal string
+				var includeTypeName string
+
+				err := attrsFunc(z, hasAttr, func(k, v []byte) error {
+					isRef := equalsRef(k)
+					isPath := equalsPath(k)
+					log.Println(isRef, isPath)
+
+					// validate attributes
+					if !isRef && !isPath {
+						return fmt.Errorf("<include> specifies invalid attribute %q", k)
+					}
+
+					if isRef {
+						if _, ok := disallowedRefs[string(v)]; ok {
+							return fmt.Errorf("ref name %q disallowed (reserved for internal use)", v)
+						}
+						refAttrVal = string(v)
+					} else {
+						foundPathAttr = true
+
+						v := string(v)
+						var includePath string
+						if filepath.IsAbs(v) {
+							includePath = filepath.Join(g.opts.Root, v)
+						} else {
+							includePath = filepath.Join(filepath.Dir(path), v)
+						}
+						err := g.generateOneFile(includePath, history)
+						if err != nil {
+							return err
+						}
+						// ... successfully included; append it
+						includeTypeName = componentTypeName(filepath.Base(includePath))
+						includeConstructorFuncName := constructorFuncName(includeTypeName)
+						fmt.Fprintf(&funcBuf, "%s := %s()\n", varName, includeConstructorFuncName)
+					}
+					return nil
+				})
+				if err != nil {
+					return err
+				}
+
+				if !foundPathAttr {
+					return fmt.Errorf("missing required \"path\" attribute in <include>")
+				}
+				if refAttrVal != "" {
+					ex, ok := refs[refAttrVal]
+					if ok {
+						return fmt.Errorf("ref %q appears multiple times in component (previous occurence in <%s>)", refAttrVal, ex.TagName)
+					}
+					refs[refAttrVal] = TagAndVarAndTypeName{tagName, varName, includeTypeName}
+				}
+
+				continue
+			}
+
+			fmt.Fprintf(&funcBuf, "%s := _document.CreateElement(%q, nil)\n", varName, tagName)
+			attrsFunc(z, hasAttr, func(k, v []byte) error {
+				if equalsRef(k) {
+					v := string(v)
+					if _, ok := disallowedRefs[v]; ok {
+						return fmt.Errorf("ref name %q disallowed (reserved for internal use)", v)
+					}
+					ex, ok := refs[v]
+					if ok {
+						return fmt.Errorf("ref %q appears multiple times in component (previous occurence in <%s>)", v, ex.TagName)
+					}
+					refs[v] = TagAndVarAndTypeName{tagName, varName, ""}
+					return nil
+				}
+				fmt.Fprintf(&funcBuf, "%s.SetAttribute(%q, %q)\n", varName, k, v)
+				return nil
+			})
 
 		case html.EndTagToken:
-			name := names.pop()
-			parentName, ok := names.peek()
-			if ok {
-				fmt.Fprintf(&funcBuf, "%s.AppendChild(&%s.Node)\n", parentName, name)
+			curr := names.pop()
+			parent, ok := names.peek()
+			if !ok {
+				continue
+			}
+			if curr.TagName == "include" {
+				fmt.Fprintf(&funcBuf, "for _, r := range %s.roots {\n", curr.VarName)
+				fmt.Fprintf(&funcBuf, "%s.AppendChild(&r.Node)\n", parent.VarName)
+				fmt.Fprintf(&funcBuf, "}\n")
+			} else {
+				fmt.Fprintf(&funcBuf, "%s.AppendChild(&%s.Node)\n", parent.VarName, curr.VarName)
 			}
 
 		case html.SelfClosingTagToken:
@@ -230,8 +333,21 @@ tokenizeView:
 		}
 	}
 
-	typeBuf.WriteString("}\n\n")
+	// TODO: write return
+	// TODO: field refs have to be linked
 	funcBuf.WriteString("}\n\n")
+
+	var typeBuf bytes.Buffer
+	fmt.Fprintf(&typeBuf, "type %s struct {\n", typeName)
+	for k, v := range refs {
+		typeName := "*dom.Element" // TODO: make this more specific (like *html.HTMLDomElement)
+		if v.TypeName != "" {
+			typeName = "*" + v.TypeName
+		}
+		fmt.Fprintf(&typeBuf, "%s %s\n", k, typeName)
+	}
+	fmt.Fprint(&typeBuf, "roots []*dom.Element\n")
+	typeBuf.WriteString("}\n\n")
 
 	// Add view output to the overall output.
 	io.Copy(&g.viewsBuf, &typeBuf)
@@ -260,34 +376,30 @@ func newVarNames() varNames {
 	}
 }
 
-func (v *varNames) next(tagName string) string {
-	n := v.m[tagName]
-	v.m[tagName]++
-	return fmt.Sprintf("%s%d", tagName, n)
+func (v *varNames) next(kind string) string {
+	n := v.m[kind]
+	v.m[kind]++
+	return fmt.Sprintf("%s%d", kind, n)
 }
 
-func isIncludeTag(tn []byte) bool {
-	return len(tn) == 7 &&
-		tn[0] == 'i' &&
-		tn[1] == 'n' &&
-		tn[2] == 'c' &&
-		tn[3] == 'l' &&
-		tn[4] == 'u' &&
-		tn[5] == 'd' &&
-		tn[6] == 'e'
+func equalsRef(k []byte) bool {
+	return len(k) == 3 &&
+		k[0] == 'r' &&
+		k[1] == 'e' &&
+		k[2] == 'f'
 }
 
-func isStyleTag(tn []byte) bool {
-	return len(tn) == 5 &&
-		tn[0] == 's' &&
-		tn[1] == 't' &&
-		tn[2] == 'y' &&
-		tn[3] == 'l' &&
-		tn[4] == 'e'
+func equalsPath(k []byte) bool {
+	return len(k) == 4 &&
+		k[0] == 'p' &&
+		k[1] == 'a' &&
+		k[2] == 't' &&
+		k[3] == 'h'
 }
 
 var (
 	newline = []byte{'\n'}
+	slash   = []byte{'/'}
 )
 
 func componentTypeName(filename string) string {
@@ -320,14 +432,29 @@ func constructorFuncName(typeName string) string {
 	return "new" + toUppperFirstRune(typeName)
 }
 
-func attrsFunc(z *html.Tokenizer, f func(k, v []byte)) {
-	for {
-		k, v, more := z.TagAttr()
-		if !more {
-			break
+func attrsFunc(z *html.Tokenizer, hasAttr bool, f func(k, v []byte) error) error {
+	for hasAttr {
+		var k, v []byte
+		k, v, hasAttr = z.TagAttr()
+		if err := f(k, v); err != nil {
+			return err
 		}
-		f(k, v)
 	}
+	return nil
+}
+
+type KV struct {
+	K []byte
+	V []byte
+}
+
+func attrs(z *html.Tokenizer, hasAttr bool) []KV {
+	var kvs []KV
+	attrsFunc(z, hasAttr, func(k, v []byte) error {
+		kvs = append(kvs, KV{k, v})
+		return nil
+	})
+	return kvs
 }
 
 const viewsHeader = `
@@ -346,7 +473,7 @@ type (
 )
 
 var (
-	__document = webapi.GetDocument()
+	_document = webapi.GetDocument()
 )
 `
 
