@@ -6,7 +6,6 @@ import (
 	"go/format"
 	"html/template"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -180,14 +179,16 @@ func (g *generator) generateComponent(in io.Reader, path string, history *ordere
 	funcName := constructorFuncName(typeName)
 
 	var funcBuf bytes.Buffer
-	fmt.Fprintf(&funcBuf, "func %s() *Foo {\n", funcName)
+	fmt.Fprintf(&funcBuf, "func %s() *Foo {", funcName)
 
 	z := html.NewTokenizer(in)
 	namer := newVarNames()
-	var names stack // also used to determine depth
-	var inStyle bool
+
+	var names stack                               // also used to record depth
+	var insideStyle bool                          // whether we break out inside top-level <style>
 	refs := make(map[string]TagAndVarAndTypeName) // ref attribute value -> names
 	addNewline := false                           // cosmetic whitespace
+	var roots []string                            // roots var names
 
 tokenizeView:
 	for {
@@ -221,7 +222,7 @@ tokenizeView:
 
 			if tagName == "style" && names.len() == 0 {
 				names.push(TagAndVarName{tagName, varName})
-				inStyle = true
+				insideStyle = true
 				break tokenizeView
 			}
 
@@ -240,7 +241,6 @@ tokenizeView:
 				err := attrsFunc(z, hasAttr, func(k, v []byte) error {
 					isRef := equalsRef(k)
 					isPath := equalsPath(k)
-					log.Println(isRef, isPath)
 
 					// validate attributes
 					if !isRef && !isPath {
@@ -313,6 +313,8 @@ tokenizeView:
 			curr := names.pop()
 			parent, ok := names.peek()
 			if !ok {
+				// no parent; record as root
+				roots = append(roots, curr.VarName)
 				continue
 			}
 			if curr.TagName == "include" {
@@ -333,12 +335,16 @@ tokenizeView:
 		}
 	}
 
-	// TODO: write return
-	// TODO: field refs have to be linked
-	funcBuf.WriteString("}\n\n")
+	fmt.Fprintf(&funcBuf, "\n\nreturn &%s{\n", typeName)
+	for k, r := range refs {
+		fmt.Fprintf(&funcBuf, "%s: %s,\n", k, r.VarName)
+	}
+	fmt.Fprintf(&funcBuf, "roots: []*dom.Element{%s},\n", strings.Join(roots, ", "))
+	fmt.Fprint(&funcBuf, "}")
+	fmt.Fprint(&funcBuf, "}\n\n")
 
 	var typeBuf bytes.Buffer
-	fmt.Fprintf(&typeBuf, "type %s struct {\n", typeName)
+	fmt.Fprintf(&typeBuf, "type %s struct {", typeName)
 	for k, v := range refs {
 		typeName := "*dom.Element" // TODO: make this more specific (like *html.HTMLDomElement)
 		if v.TypeName != "" {
@@ -347,19 +353,19 @@ tokenizeView:
 		fmt.Fprintf(&typeBuf, "%s %s\n", k, typeName)
 	}
 	fmt.Fprint(&typeBuf, "roots []*dom.Element\n")
-	typeBuf.WriteString("}\n\n")
+	fmt.Fprint(&typeBuf, "}\n\n")
 
 	// Add view output to the overall output.
 	io.Copy(&g.viewsBuf, &typeBuf)
 	io.Copy(&g.viewsBuf, &funcBuf)
 
-	if inStyle {
-		var css bytes.Buffer
-
+	if insideStyle {
 		// TODO: write the CSS filename to make it easy to know where
 		// the generated CSS originates from.
+		var css bytes.Buffer
+
+		fmt.Fprintf(&css, "}\n\n")
 		io.Copy(&g.cssBuf, &css)
-		g.cssBuf.WriteString("\n\n")
 	}
 
 	return nil
@@ -444,14 +450,14 @@ func attrsFunc(z *html.Tokenizer, hasAttr bool, f func(k, v []byte) error) error
 }
 
 type KV struct {
-	K []byte
-	V []byte
+	K string
+	V string
 }
 
 func attrs(z *html.Tokenizer, hasAttr bool) []KV {
 	var kvs []KV
 	attrsFunc(z, hasAttr, func(k, v []byte) error {
-		kvs = append(kvs, KV{k, v})
+		kvs = append(kvs, KV{string(k), string(v)})
 		return nil
 	})
 	return kvs
