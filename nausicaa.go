@@ -100,7 +100,7 @@ type Options struct {
 	Root    string // root directory for absolute paths in <include /> elements
 }
 
-func Generate(inputFiles []string, opts Options) (viewOut, cssOut []byte, err error) {
+func Generate(inputFiles []string, opts Options) (viewsOut, cssOut []byte, err error) {
 	g := &generator{
 		opts:      opts,
 		generated: make(map[string]struct{}),
