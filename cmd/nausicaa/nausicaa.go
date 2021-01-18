@@ -28,7 +28,7 @@ Usage:
 Flags:
    -h --help           Print help and exit
    --outcss=<file>     Write CSS output to specified file instead of stdout
-   --outviews=<file>   Write view output to specified file instead of stdout
+   --outviews=<file>   Write views output to specified file instead of stdout
    --package=<name>    Package name to use in output (default: "views")
    --root=<dir>        Root directory for absolute paths in <include />
                        elements (default: ".")
@@ -36,7 +36,7 @@ Flags:
 Examples:
    nausicaa Button.html SegmentedControl.html
    nausicaa $(find ./components -name '*.html')
-   nausicaa --package=ui --outfile=my/pkg/ui/ui.go Select.html
+   nausicaa --package=ui --outviews=my/pkg/ui/ui.go Select.html
 `
 
 var (
