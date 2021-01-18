@@ -15,20 +15,20 @@ import (
 	"golang.org/x/net/html"
 )
 
-type TagAndVarName struct {
+type tagAndVarName struct {
 	TagName string
 	VarName string
 }
 
 type stack struct {
-	s []TagAndVarName
+	s []tagAndVarName
 }
 
-func (st *stack) push(v TagAndVarName) {
+func (st *stack) push(v tagAndVarName) {
 	st.s = append(st.s, v)
 }
 
-func (st *stack) pop() TagAndVarName {
+func (st *stack) pop() tagAndVarName {
 	v := st.s[len(st.s)-1]
 	st.s = st.s[:len(st.s)-1]
 	return v
@@ -38,9 +38,9 @@ func (st *stack) len() int {
 	return len(st.s)
 }
 
-func (st *stack) peek() (TagAndVarName, bool) {
+func (st *stack) peek() (tagAndVarName, bool) {
 	if st.len() == 0 {
-		return TagAndVarName{}, false
+		return tagAndVarName{}, false
 	}
 	return st.s[len(st.s)-1], true
 }
@@ -100,7 +100,7 @@ type Options struct {
 	Root    string // root directory for absolute paths in <include /> elements
 }
 
-func Generate(inputFiles []string, opts Options) (viewOuts, cssOut []byte, err error) {
+func Generate(inputFiles []string, opts Options) (viewOut, cssOut []byte, err error) {
 	g := &generator{
 		opts:      opts,
 		generated: make(map[string]struct{}),
@@ -164,7 +164,7 @@ var disallowedRefNames = map[string]struct{}{
 	"roots": {},
 }
 
-type TagAndVarAndTypeName struct {
+type tagAndVarAndTypeName struct {
 	TagName  string
 	VarName  string
 	TypeName string
@@ -202,7 +202,7 @@ func (g *generator) generateComponent(in io.Reader, path string, history *ordere
 
 	var names stack                               // also used to record depth
 	var insideStyle bool                          // whether we break out inside top-level <style>
-	refs := make(map[string]TagAndVarAndTypeName) // ref attribute value -> names
+	refs := make(map[string]tagAndVarAndTypeName) // ref attribute value -> names
 	var roots []string                            // roots var names
 
 tokenizeView:
@@ -236,12 +236,12 @@ tokenizeView:
 			varName := namer.next(tagName)
 
 			if tagName == "style" && names.len() == 0 {
-				names.push(TagAndVarName{tagName, varName})
+				names.push(tagAndVarName{tagName, varName})
 				insideStyle = true
 				break tokenizeView
 			}
 
-			names.push(TagAndVarName{tagName, varName})
+			names.push(tagAndVarName{tagName, varName})
 
 			err := g.handleStartToken(&funcBuf, z, path, tagName, varName, hasAttr, refs, history)
 			if err != nil {
@@ -291,7 +291,7 @@ tokenizeView:
 
 func (g *generator) handleStartToken(w io.Writer, z *html.Tokenizer,
 	path, tagName, varName string, hasAttr bool,
-	refs map[string]TagAndVarAndTypeName, history *orderedSet) error {
+	refs map[string]tagAndVarAndTypeName, history *orderedSet) error {
 
 	if tagName == "include" {
 		return g.handleStartInclude(w, z, path, tagName, varName, hasAttr, refs, history)
@@ -301,7 +301,7 @@ func (g *generator) handleStartToken(w io.Writer, z *html.Tokenizer,
 
 func (g *generator) handleStartRegular(w io.Writer, z *html.Tokenizer,
 	path, tagName, varName string, hasAttr bool,
-	refs map[string]TagAndVarAndTypeName) error {
+	refs map[string]tagAndVarAndTypeName) error {
 
 	fmt.Fprintf(w, "%s := _document.CreateElement(%q, nil)\n", varName, tagName)
 	err := attrsFunc(z, hasAttr, func(k, v []byte) error {
@@ -314,7 +314,7 @@ func (g *generator) handleStartRegular(w io.Writer, z *html.Tokenizer,
 			if ok {
 				return errRepeatedRefName(path, v, ex.TagName)
 			}
-			refs[v] = TagAndVarAndTypeName{tagName, varName, ""}
+			refs[v] = tagAndVarAndTypeName{tagName, varName, ""}
 			return nil
 		}
 		fmt.Fprintf(w, "%s.SetAttribute(%q, %q)\n", varName, k, v)
@@ -330,7 +330,7 @@ func (g *generator) handleStartRegular(w io.Writer, z *html.Tokenizer,
 
 func (g *generator) handleStartInclude(w io.Writer, z *html.Tokenizer,
 	path, tagName, varName string, hasAttr bool,
-	refs map[string]TagAndVarAndTypeName, history *orderedSet) error {
+	refs map[string]tagAndVarAndTypeName, history *orderedSet) error {
 
 	var foundPathAttr bool
 	var refAttrVal string
@@ -388,7 +388,7 @@ func (g *generator) handleStartInclude(w io.Writer, z *html.Tokenizer,
 		if ok {
 			return errRepeatedRefName(path, refAttrVal, ex.TagName)
 		}
-		refs[refAttrVal] = TagAndVarAndTypeName{tagName, varName, includeTypeName}
+		refs[refAttrVal] = tagAndVarAndTypeName{tagName, varName, includeTypeName}
 	}
 	return nil
 }
@@ -410,7 +410,7 @@ func (*generator) handleEndToken(w io.Writer, tagName, varName string, names *st
 	}
 }
 
-func writeReturn(w io.Writer, typeName string, refs map[string]TagAndVarAndTypeName, roots []string) {
+func writeReturn(w io.Writer, typeName string, refs map[string]tagAndVarAndTypeName, roots []string) {
 	fmt.Fprintf(w, "\n\nreturn &%s{\n", typeName)
 	for k, r := range refs {
 		fmt.Fprintf(w, "%s: %s,\n", k, r.VarName)
@@ -419,7 +419,7 @@ func writeReturn(w io.Writer, typeName string, refs map[string]TagAndVarAndTypeN
 	fmt.Fprint(w, "}")
 }
 
-func writeTypeDefinition(w io.Writer, typeName string, refs map[string]TagAndVarAndTypeName) {
+func writeTypeDefinition(w io.Writer, typeName string, refs map[string]tagAndVarAndTypeName) {
 	fmt.Fprintf(w, "type %s struct {", typeName)
 	for k, v := range refs {
 		typeName := "*dom.Element" // TODO: make this more specific (like *html.HTMLDomElement)
@@ -510,20 +510,6 @@ func attrsFunc(z *html.Tokenizer, hasAttr bool, f func(k, v []byte) error) error
 		}
 	}
 	return nil
-}
-
-type KV struct {
-	K string
-	V string
-}
-
-func attrs(z *html.Tokenizer, hasAttr bool) []KV {
-	var kvs []KV
-	attrsFunc(z, hasAttr, func(k, v []byte) error {
-		kvs = append(kvs, KV{string(k), string(v)})
-		return nil
-	})
-	return kvs
 }
 
 const viewsHeader = `
