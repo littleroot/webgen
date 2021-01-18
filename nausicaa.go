@@ -96,8 +96,8 @@ type Options struct {
 
 func Generate(inputFiles []string, opts Options) (viewOuts, cssOut []byte, err error) {
 	g := &generator{
-		opts: opts,
-		seen: make(map[string]struct{}),
+		opts:      opts,
+		generated: make(map[string]struct{}),
 	}
 	return g.run(inputFiles)
 }
@@ -105,7 +105,7 @@ func Generate(inputFiles []string, opts Options) (viewOuts, cssOut []byte, err e
 type generator struct {
 	opts Options
 
-	seen             map[string]struct{}
+	generated        map[string]struct{}
 	viewsBuf, cssBuf bytes.Buffer
 }
 
@@ -137,7 +137,7 @@ func (g *generator) run(input []string) ([]byte, []byte, error) {
 }
 
 func (g *generator) generateOneFile(path string, history *orderedSet) error {
-	_, ok := g.seen[path]
+	_, ok := g.generated[path]
 	if ok {
 		return nil // already generated
 	}
@@ -150,10 +150,10 @@ func (g *generator) generateOneFile(path string, history *orderedSet) error {
 
 	err = g.generateComponent(f, path, history)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: %s", path, err)
 	}
 
-	g.seen[path] = struct{}{}
+	g.generated[path] = struct{}{}
 	return nil
 }
 
@@ -187,7 +187,6 @@ func (g *generator) generateComponent(in io.Reader, path string, history *ordere
 	var names stack                               // also used to record depth
 	var insideStyle bool                          // whether we break out inside top-level <style>
 	refs := make(map[string]TagAndVarAndTypeName) // ref attribute value -> names
-	addNewline := false                           // cosmetic whitespace
 	var roots []string                            // roots var names
 
 tokenizeView:
@@ -227,11 +226,6 @@ tokenizeView:
 			}
 
 			names.push(TagAndVarName{tagName, varName})
-			if !addNewline {
-				addNewline = true
-			} else {
-				fmt.Fprint(&funcBuf, "\n")
-			}
 
 			if tagName == "include" {
 				var foundPathAttr bool
@@ -283,7 +277,7 @@ tokenizeView:
 				if refAttrVal != "" {
 					ex, ok := refs[refAttrVal]
 					if ok {
-						return fmt.Errorf("ref %q appears multiple times in component (previous occurence in <%s>)", refAttrVal, ex.TagName)
+						return fmt.Errorf("ref name %q appears multiple times in component (previous occurence in <%s>)", refAttrVal, ex.TagName)
 					}
 					refs[refAttrVal] = TagAndVarAndTypeName{tagName, varName, includeTypeName}
 				}
@@ -300,7 +294,7 @@ tokenizeView:
 					}
 					ex, ok := refs[v]
 					if ok {
-						return fmt.Errorf("ref %q appears multiple times in component (previous occurence in <%s>)", v, ex.TagName)
+						return fmt.Errorf("ref name %q appears multiple times in component (previous occurence in <%s>)", v, ex.TagName)
 					}
 					refs[v] = TagAndVarAndTypeName{tagName, varName, ""}
 					return nil
@@ -352,6 +346,7 @@ tokenizeView:
 		}
 		fmt.Fprintf(&typeBuf, "%s %s\n", k, typeName)
 	}
+	fmt.Fprint(&typeBuf, "\n")
 	fmt.Fprint(&typeBuf, "roots []*dom.Element\n")
 	fmt.Fprint(&typeBuf, "}\n\n")
 
