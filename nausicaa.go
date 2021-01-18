@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"html/template"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 	"unicode"
 	"unicode/utf8"
 

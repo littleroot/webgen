@@ -99,9 +99,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	// TODO: check errors
-	outViews.Write(views)
-	outCSS.Write(css)
+	if _, err := outViews.Write(views); err != nil {
+		log.Printf("write output views: %s", err)
+	}
+	if _, err := outCSS.Write(css); err != nil {
+		log.Printf("write output CSS: %s", err)
+	}
 }
 
 func createFile(p string) *os.File {
