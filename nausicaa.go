@@ -89,6 +89,12 @@ func (o *orderedSet) has(v string) bool {
 	return ok
 }
 
+func (o *orderedSet) forEach(f func(string)) {
+	for _, v := range o.s {
+		f(v)
+	}
+}
+
 type Options struct {
 	Package string // output package name
 	Root    string // root directory for absolute paths in <include /> elements
@@ -177,7 +183,12 @@ func errRepeatedRefName(path, ref, tagName string) error {
 
 func (g *generator) generateComponent(in io.Reader, path string, history *orderedSet) (err error) {
 	if history.has(path) {
-		return fmt.Errorf("%s: cycle in include paths", path)
+		var cycle []string
+		history.forEach(func(v string) {
+			cycle = append(cycle, filepath.Base(v))
+		})
+		cycle = append(cycle, filepath.Base(path))
+		return fmt.Errorf("%s: cycle in include paths (%s)", path, strings.Join(cycle, " -> "))
 	}
 
 	history.add(path)
