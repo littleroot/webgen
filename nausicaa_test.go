@@ -90,7 +90,6 @@ func TestGenerateError(t *testing.T) {
 			if !strings.HasSuffix(err.Error(), tt.err) {
 				t.Errorf("expected err to end with: %q, got: %q", tt.err, err.Error())
 			}
-
 		})
 	}
 }
