@@ -276,7 +276,7 @@ tokenizeView:
 	fmt.Fprint(&funcBuf, "\n}\n\n")
 
 	// Add this view's output to the overall output.
-	writeTypeDefinition(&g.viewsBuf, typeName, refs)
+	writeTypeDefinition(&g.viewsBuf, path, typeName, refs)
 	io.Copy(&g.viewsBuf, &funcBuf)
 
 	if insideStyle {
@@ -424,7 +424,8 @@ func writeReturn(w io.Writer, typeName string, refs map[string]tagAndVarAndTypeN
 	fmt.Fprint(w, "}")
 }
 
-func writeTypeDefinition(w io.Writer, typeName string, refs map[string]tagAndVarAndTypeName) {
+func writeTypeDefinition(w io.Writer, path, typeName string, refs map[string]tagAndVarAndTypeName) {
+	fmt.Fprintf(w, "// source: %s\n", path)
 	fmt.Fprintf(w, "type %s struct {\n", typeName)
 	for k, v := range refs {
 		typeName := "*dom.Element"
