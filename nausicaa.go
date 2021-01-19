@@ -49,7 +49,7 @@ func (st *stack) peek() (tagAndVarName, bool) {
 
 type orderedSet struct {
 	m map[string]struct{}
-	s []string
+	s []string // insertion order; earliest inserted first
 }
 
 func newOrderedSet() *orderedSet {
@@ -91,6 +91,8 @@ func (o *orderedSet) has(v string) bool {
 	return ok
 }
 
+// forEach returns the set's elements in insertion order, earliest inserted
+// first.
 func (o *orderedSet) forEach(f func(string)) {
 	for _, v := range o.s {
 		f(v)
