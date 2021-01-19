@@ -303,8 +303,11 @@ tokenizeView:
 
 		case html.EndTagToken:
 			curr := names.pop()
-			g.handleEndToken(&funcBuf, path, curr.TagName, curr.VarName, &names,
+			err := g.handleEndToken(&funcBuf, path, curr.TagName, curr.VarName, &names,
 				func(root string) { roots = append(roots, root) })
+			if err != nil {
+				return nil, nil, err
+			}
 
 		case html.SelfClosingTagToken:
 			if !hasView {
@@ -321,8 +324,11 @@ tokenizeView:
 				return nil, nil, err
 			}
 
-			g.handleEndToken(&funcBuf, path, tagName, varName, &names,
+			err = g.handleEndToken(&funcBuf, path, tagName, varName, &names,
 				func(root string) { roots = append(roots, root) })
+			if err != nil {
+				return nil, nil, err
+			}
 
 		case html.CommentToken, html.DoctypeToken:
 			// ignore
