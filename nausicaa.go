@@ -102,6 +102,8 @@ type Options struct {
 	Root    string // root directory for absolute paths in <include /> elements
 }
 
+// Generate generates the views and CSS code for the specified input file
+// paths. The error, if any, will be of type Error.
 func Generate(inputFiles []string, opts Options) (viewsOut, cssOut []byte, err error) {
 	g := &generator{
 		opts:      opts,
