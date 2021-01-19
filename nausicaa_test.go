@@ -4,6 +4,20 @@ import (
 	"testing"
 )
 
+func TestGenerateComponent(t *testing.T) {
+	files := []string{
+		"attrs.html",
+		"Exported.html",
+		"multiple_roots.html",
+		"nested.html",
+		"ref.html",
+		"self_closing.html",
+		"style.html",
+		"text_content.html",
+		"unexported.html",
+	}
+}
+
 func TestToUppperFirstRune(t *testing.T) {
 	testcases := []struct {
 		in, expect string
