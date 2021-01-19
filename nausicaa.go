@@ -2,6 +2,7 @@ package nausicaa
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/format"
 	"go/token"
@@ -109,6 +110,15 @@ func Generate(inputFiles []string, opts Options) (viewsOut, cssOut []byte, err e
 	return g.run(inputFiles)
 }
 
+type Error struct {
+	Path string
+	Err  error
+}
+
+func (e Error) Error() string {
+	return fmt.Sprintf("%s: %s", e.Path, e.Err)
+}
+
 type generator struct {
 	opts Options
 
@@ -171,12 +181,12 @@ type tagAndVarAndTypeName struct {
 	TypeName string
 }
 
-func errDisallowedRefName(path, ref string) error {
-	return fmt.Errorf("%s: ref name %q disallowed", path, ref)
+func errDisallowedRefName(ref string) error {
+	return fmt.Errorf("ref name %q disallowed", ref)
 }
 
-func errRepeatedRefName(path, ref, prevTagName string) error {
-	return fmt.Errorf("%s: ref name %q present multiple times (previous occurence in <%s>)", path, ref, prevTagName)
+func errRepeatedRefName(ref, prevTagName string) error {
+	return fmt.Errorf("ref name %q present multiple times (previous occurence in <%s>)", ref, prevTagName)
 }
 
 func (g *generator) generateComponent(in io.Reader, path string, history *orderedSet) (err error) {
@@ -186,7 +196,10 @@ func (g *generator) generateComponent(in io.Reader, path string, history *ordere
 			cycle = append(cycle, filepath.Base(v))
 		})
 		cycle = append(cycle, filepath.Base(path))
-		return fmt.Errorf("%s: cycle in include paths (%s)", path, strings.Join(cycle, " -> "))
+		return Error{
+			Path: path,
+			Err:  fmt.Errorf("cycle in include paths (%s)", strings.Join(cycle, " -> ")),
+		}
 	}
 
 	history.add(path)
@@ -281,7 +294,10 @@ tokenizeView:
 
 	if insideStyle {
 		if z.Next() != html.TextToken {
-			return fmt.Errorf("%s: cannot find <style> text", path)
+			return Error{
+				Path: path,
+				Err:  errors.New("cannot find <style> text"),
+			}
 		}
 		fmt.Fprintf(&g.cssBuf, "/* source: %s */\n%s\n\n", path, bytes.TrimSpace(z.Text()))
 		// NOTE: We dont't check for the end </style> tag.
@@ -309,11 +325,17 @@ func (g *generator) handleStartRegular(w io.Writer, z *html.Tokenizer,
 		if equalsRef(k) {
 			v := string(v)
 			if isDisallowedRefName(v) {
-				return errDisallowedRefName(path, v)
+				return Error{
+					Path: path,
+					Err:  errDisallowedRefName(v),
+				}
 			}
 			ex, ok := refs[v]
 			if ok {
-				return errRepeatedRefName(path, v, ex.TagName)
+				return Error{
+					Path: path,
+					Err:  errRepeatedRefName(v, ex.TagName),
+				}
 			}
 			refs[v] = tagAndVarAndTypeName{tagName, varName, ""}
 			return nil
@@ -343,13 +365,19 @@ func (g *generator) handleStartInclude(w io.Writer, z *html.Tokenizer,
 
 		// validate attributes
 		if !isRef && !isPath {
-			return fmt.Errorf("%s: <include> specifies invalid attribute %q", path, k)
+			return Error{
+				Path: path,
+				Err:  fmt.Errorf("<include> specifies invalid attribute %q", k),
+			}
 		}
 
 		if isRef {
 			val := string(v)
 			if isDisallowedRefName(val) {
-				return errDisallowedRefName(path, val)
+				return Error{
+					Path: path,
+					Err:  errDisallowedRefName(val),
+				}
 			}
 			refAttrVal = val
 			return nil
@@ -382,12 +410,18 @@ func (g *generator) handleStartInclude(w io.Writer, z *html.Tokenizer,
 	}
 
 	if !foundPathAttr {
-		return fmt.Errorf("%s: missing required \"path\" attribute in <include>", path)
+		return Error{
+			Path: path,
+			Err:  errors.New(`missing required "path" attribute in <include>`),
+		}
 	}
 	if refAttrVal != "" {
 		ex, ok := refs[refAttrVal]
 		if ok {
-			return errRepeatedRefName(path, refAttrVal, ex.TagName)
+			return Error{
+				Path: path,
+				Err:  errRepeatedRefName(refAttrVal, ex.TagName),
+			}
 		}
 		refs[refAttrVal] = tagAndVarAndTypeName{tagName, varName, includeTypeName}
 	}
