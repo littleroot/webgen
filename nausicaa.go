@@ -134,6 +134,14 @@ type generator struct {
 	viewsBuf, cssBuf bytes.Buffer
 }
 
+func (g *generator) reset() {
+	if len(g.generated) != 0 {
+		g.generated = make(map[string]struct{})
+	}
+	g.viewsBuf.Reset()
+	g.cssBuf.Reset()
+}
+
 func (g *generator) run(input []string) ([]byte, []byte, error) {
 	err := viewsHeaderTpl.Execute(&g.viewsBuf, g.opts.Package)
 	if err != nil {

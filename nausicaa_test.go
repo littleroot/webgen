@@ -1,22 +1,59 @@
 package nausicaa
 
 import (
+	"bytes"
+	"io"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
+
+	"github.com/kylelemons/godebug/diff"
 )
 
-func TestGenerateComponent(t *testing.T) {
+func TestGenerate(t *testing.T) {
 	files := []string{
-		"attrs.html",
-		"Exported.html",
-		"multiple_roots.html",
-		"nested.html",
-		"ref.html",
-		"self_closing.html",
-		"style.html",
-		"text_content.html",
-		"unexported.html",
+		"attrs",
+		"Exported",
+		"multiple_roots",
+		// "nested",
+		// "ref",
+		// "self_closing",
+		// "specific_element",
+		// "style",
+		// "text_content",
+		// "unexported",
+	}
+
+	g := generator{
+		opts: Options{
+			Package: "ui",
+		},
+		generated: make(map[string]struct{}),
+		open: func(name string) (io.ReadCloser, error) {
+			return os.Open(name)
+		},
+	}
+
+	for _, f := range files {
+		t.Run(f, func(t *testing.T) {
+			g.reset()
+			path := filepath.Join("testdata", "single", f+".html")
+
+			expectv, err := ioutil.ReadFile(filepath.Join("testdata", "golden", "single", f+".golden.go"))
+			Ok(t, err)
+			expectc, err := ioutil.ReadFile(filepath.Join("testdata", "golden", "single", f+".golden.css"))
+			Ok(t, err)
+
+			gotv, gotc, err := g.run([]string{path})
+			Ok(t, err)
+			EqualBytes(t, expectv, gotv, bytes.TrimSpace)
+			EqualBytes(t, expectc, gotc, bytes.TrimSpace)
+		})
 	}
 }
+
+func TestGenerateError(t *testing.T) {}
 
 func TestToUppperFirstRune(t *testing.T) {
 	testcases := []struct {
@@ -53,5 +90,21 @@ func Equal(t *testing.T, expect, got string) {
 	t.Helper()
 	if got != expect {
 		t.Errorf("expected: %s, got: %s", expect, got)
+	}
+}
+
+func EqualBytes(t *testing.T, expect, got []byte, normalize func([]byte) []byte) {
+	t.Helper()
+	e := normalize(expect)
+	g := normalize(got)
+	if !bytes.Equal(e, g) {
+		t.Errorf("%s", diff.Diff(string(e), string(g)))
+	}
+}
+
+func Ok(t *testing.T, err error) {
+	t.Helper()
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
 	}
 }
