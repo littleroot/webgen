@@ -3,7 +3,7 @@ package nausicaa
 import "fmt"
 
 func webapiNames(tagName string) (typeName string, funcName string, ok bool) {
-	t, ok := webapiElementToType[tagName]
+	t, ok := webapiTagToType[tagName]
 	if !ok {
 		return "", "", false
 	}
@@ -13,7 +13,7 @@ func webapiNames(tagName string) (typeName string, funcName string, ok bool) {
 }
 
 // Obtained from webapi@v0.0.0-20201112202446-44407bcf554b.
-var webapiElementToType = map[string]struct {
+var webapiTagToType = map[string]struct {
 	Package string
 	Type    string
 }{
