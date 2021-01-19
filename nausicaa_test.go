@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/kylelemons/godebug/diff"
@@ -54,7 +55,45 @@ func TestGenerate(t *testing.T) {
 	}
 }
 
-func TestGenerateError(t *testing.T) {} // TODO
+func TestGenerateError(t *testing.T) {
+	testcases := []struct {
+		filename string
+		err      string
+	}{
+		// TODO: do something correct for this test case, then uncomment.
+		// right now, format.Source() panics.
+		// {"bad_html", ""},
+		{"cycle0_include", "cycle in include paths (cycle0_include.html -> cycle1_include.html -> cycle2_include.html -> cycle0_include.html)"},
+		{"disallowed_ref_name_keyword", `ref name "select" disallowed (Go keyword)`},
+		{"disallowed_ref_name_roots", `ref name "roots" disallowed (reserved for internal use)`},
+		{"invalid_attr_include", `<include> specifies invalid attribute "foo"`},
+		{"missing_path_attr_include", `missing required "path" attribute in <include>`},
+		{"repeated_ref", `ref name "foo" present multiple times (previous occurence in <div>)`},
+	}
+
+	g := generator{
+		opts: Options{
+			Package: "ui",
+		},
+		generated: make(map[string]struct{}),
+		open: func(name string) (io.ReadCloser, error) {
+			return os.Open(name)
+		},
+	}
+
+	for _, tt := range testcases {
+		t.Run(tt.filename, func(t *testing.T) {
+			g.reset()
+			path := filepath.Join("testdata", "error", tt.filename+".html")
+
+			_, _, err := g.run([]string{path})
+			if !strings.HasSuffix(err.Error(), tt.err) {
+				t.Errorf("expected err to end with: %q, got: %q", tt.err, err.Error())
+			}
+
+		})
+	}
+}
 
 func TestToUppperFirstRune(t *testing.T) {
 	testcases := []struct {

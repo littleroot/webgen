@@ -157,6 +157,9 @@ func (g *generator) run(input []string) ([]byte, []byte, error) {
 		}
 	}
 
+	// Uncomment to debug.
+	// log.Println(string(g.viewsBuf.Bytes()))
+
 	// Run through gofmt-style formatting.
 	views, err := format.Source(g.viewsBuf.Bytes())
 	if err != nil {
