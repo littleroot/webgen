@@ -166,10 +166,12 @@ func (g *generator) generateOneFile(path string, history *orderedSet) error {
 	}
 	defer f.Close()
 
-	err = g.generateComponent(f, path, history)
+	views, css, err := g.generateComponent(f, path, history)
 	if err != nil {
 		return err
 	}
+	io.Copy(&g.viewsBuf, views)
+	io.Copy(&g.cssBuf, css)
 
 	g.generated[path] = struct{}{}
 	return nil
@@ -196,14 +198,18 @@ func errRepeatedRefName(ref, prevTagName string) error {
 	return fmt.Errorf("ref name %q present multiple times (previous occurence in <%s>)", ref, prevTagName)
 }
 
-func (g *generator) generateComponent(in io.Reader, path string, history *orderedSet) (err error) {
+func (g *generator) generateComponent(
+	in io.Reader,
+	path string,
+	history *orderedSet,
+) (views, css io.Reader, err error) {
 	if history.has(path) {
 		var cycle []string
 		history.forEach(func(v string) {
 			cycle = append(cycle, filepath.Base(v))
 		})
 		cycle = append(cycle, filepath.Base(path))
-		return Error{
+		return nil, nil, Error{
 			Path: path,
 			Err:  fmt.Errorf("cycle in include paths (%s)", strings.Join(cycle, " -> ")),
 		}
@@ -234,7 +240,7 @@ tokenizeView:
 			if z.Err() == io.EOF {
 				break tokenizeView
 			}
-			return Error{
+			return nil, nil, Error{
 				Path: path,
 				Err:  fmt.Errorf("tokenize HTML: %w", z.Err()),
 			}
@@ -269,7 +275,7 @@ tokenizeView:
 
 			err := g.handleStartToken(&funcBuf, z, path, tagName, varName, hasAttr, refs, history)
 			if err != nil {
-				return err
+				return nil, nil, err
 			}
 
 		case html.EndTagToken:
@@ -284,7 +290,7 @@ tokenizeView:
 
 			err := g.handleStartToken(&funcBuf, z, path, tagName, varName, hasAttr, refs, history)
 			if err != nil {
-				return err
+				return nil, nil, err
 			}
 
 			g.handleEndToken(&funcBuf, tagName, varName, &names,
@@ -298,22 +304,22 @@ tokenizeView:
 	writeReturn(&funcBuf, typeName, refs, roots)
 	fmt.Fprint(&funcBuf, "\n}\n\n")
 
-	// Add this view's output to the overall output.
-	writeTypeDefinition(&g.viewsBuf, path, typeName, refs)
-	io.Copy(&g.viewsBuf, &funcBuf)
+	var typeBuf bytes.Buffer
+	writeTypeDefinition(&typeBuf, path, typeName, refs)
 
+	var cssBuf bytes.Buffer
 	if insideStyle {
 		if z.Next() != html.TextToken {
-			return Error{
+			return nil, nil, Error{
 				Path: path,
 				Err:  errors.New("cannot find <style> text"),
 			}
 		}
-		fmt.Fprintf(&g.cssBuf, "/* source: %s */\n%s\n\n", path, bytes.TrimSpace(z.Text()))
+		fmt.Fprintf(&cssBuf, "/* source: %s */\n\n%s\n\n", path, bytes.TrimSpace(z.Text()))
 		// NOTE: We dont't check for the end </style> tag.
 	}
 
-	return nil
+	return io.MultiReader(&typeBuf, &funcBuf), &cssBuf, nil
 }
 
 func (g *generator) handleStartToken(w io.Writer, z *html.Tokenizer,
@@ -471,7 +477,7 @@ func writeReturn(w io.Writer, typeName string, refs map[string]tagAndVarAndTypeN
 }
 
 func writeTypeDefinition(w io.Writer, path, typeName string, refs map[string]tagAndVarAndTypeName) {
-	fmt.Fprintf(w, "// source: %s\n", path)
+	fmt.Fprintf(w, "// source: %s\n\n", path)
 	fmt.Fprintf(w, "type %s struct {\n", typeName)
 	for k, v := range refs {
 		typeName := "*dom.Element"
