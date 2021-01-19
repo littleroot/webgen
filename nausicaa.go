@@ -237,11 +237,11 @@ func (g *generator) generateComponent(
 	funcName := constructorFuncName(typeName)
 
 	var funcBuf bytes.Buffer
-	fmt.Fprintf(&funcBuf, "func %s() *%s {\n", funcName, typeName)
 
 	z := html.NewTokenizer(in)
 	namer := newVarNames()
 
+	var hasView bool
 	var names stack                               // also used to record depth
 	var insideStyle bool                          // whether we break out inside top-level <style>
 	refs := make(map[string]tagAndVarAndTypeName) // ref attribute value -> names
@@ -286,6 +286,11 @@ tokenizeView:
 				break tokenizeView
 			}
 
+			if !hasView {
+				hasView = true
+				fmt.Fprintf(&funcBuf, "func %s() *%s {\n", funcName, typeName)
+			}
+
 			names.push(tagAndVarName{tagName, varName})
 
 			err := g.handleStartToken(&funcBuf, z, path, tagName, varName, hasAttr, refs, history)
@@ -299,6 +304,11 @@ tokenizeView:
 				func(root string) { roots = append(roots, root) })
 
 		case html.SelfClosingTagToken:
+			if !hasView {
+				hasView = true
+				fmt.Fprintf(&funcBuf, "func %s() *%s {\n", funcName, typeName)
+			}
+
 			tn, hasAttr := z.TagName()
 			tagName := string(tn)
 			varName := namer.next(tagName)
@@ -316,11 +326,16 @@ tokenizeView:
 		}
 	}
 
-	writeReturn(&funcBuf, typeName, refs, roots)
-	fmt.Fprint(&funcBuf, "\n}\n\n")
+	if hasView {
+		writeReturn(&funcBuf, typeName, refs, roots)
+		fmt.Fprint(&funcBuf, "\n}\n\n")
+	}
 
 	var typeBuf bytes.Buffer
-	writeTypeDefinition(&typeBuf, path, typeName, refs)
+
+	if hasView {
+		writeTypeDefinition(&typeBuf, path, typeName, refs)
+	}
 
 	var cssBuf bytes.Buffer
 	if insideStyle {

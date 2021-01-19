@@ -16,13 +16,14 @@ func TestGenerate(t *testing.T) {
 		"attrs",
 		"Exported",
 		"multiple_roots",
-		// "nested",
-		// "ref",
-		// "self_closing",
-		// "specific_element",
-		// "style",
-		// "text_content",
-		// "unexported",
+		"nested",
+		"ref",
+		"self_closing",
+		"specific_element",
+		"style",
+		"style_only",
+		"text_content",
+		"unexported",
 	}
 
 	g := generator{
@@ -53,7 +54,7 @@ func TestGenerate(t *testing.T) {
 	}
 }
 
-func TestGenerateError(t *testing.T) {}
+func TestGenerateError(t *testing.T) {} // TODO
 
 func TestToUppperFirstRune(t *testing.T) {
 	testcases := []struct {
