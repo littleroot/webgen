@@ -4,15 +4,13 @@ Write your components and styles in `.html` files. Nausicaä generates Go code t
 
 Inspired by [tomato][1].
 
+For documentation, see https://littleroot.github.io/nausicaa.
+
 ### Install
 
 ```
-go get github.com/nishanths/nausicaa/cmd/nausicaa
+go get github.com/littleroot/nausicaa/cmd/nausicaa
 ```
-
-## Guide
-
-
 
 ## License
 
