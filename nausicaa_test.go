@@ -104,7 +104,7 @@ func TestGenerateError(t *testing.T) {
 		// {"badHTML", ""},
 		{"cycle0Include", "cycle in include paths (cycle0Include.html -> cycle1Include.html -> cycle2Include.html -> cycle0Include.html)"},
 		{"disallowedRefNameKeyword", `ref name "select" disallowed (Go keyword)`},
-		{"disallowedRefNameRoots", `ref name "roots" disallowed (reserved for internal use)`},
+		{"disallowedRefNameRoots", `ref name "Roots" disallowed (reserved for internal use)`},
 		{"invalidAttrInclude", `<include> specifies invalid attribute "foo"`},
 		{"missingPathAttrInclude", `missing required "path" attribute in <include>`},
 		{"repeatedRef", `ref name "foo" present multiple times (previous occurence in <div>)`},
@@ -127,6 +127,9 @@ func TestGenerateError(t *testing.T) {
 			path := filepath.Join("testdata", "error", tt.filename+".html")
 
 			_, _, err := g.run([]string{path})
+			if err == nil {
+				t.Errorf("err unexpectedly nil")
+			}
 			if !strings.HasSuffix(err.Error(), tt.err) {
 				t.Errorf("expected err to end with: %q, got: %q", tt.err, err.Error())
 			}

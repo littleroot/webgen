@@ -25,7 +25,7 @@ var (
 // source: testdata/standalone/attrs.html
 
 type attrs struct {
-	roots []*dom.Element
+	Roots []*dom.Element
 }
 
 func newAttrs() *attrs {
@@ -33,6 +33,6 @@ func newAttrs() *attrs {
 	input0.SetAttribute("type", "text")
 	input0.SetAttribute("class", "foo")
 	return &attrs{
-		roots: []*dom.Element{input0},
+		Roots: []*dom.Element{input0},
 	}
 }

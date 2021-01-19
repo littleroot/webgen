@@ -25,7 +25,7 @@ var (
 // source: testdata/standalone/multipleRoots.html
 
 type multipleRoots struct {
-	roots []*dom.Element
+	Roots []*dom.Element
 }
 
 func newMultipleRoots() *multipleRoots {
@@ -36,6 +36,6 @@ func newMultipleRoots() *multipleRoots {
 	const stringliteral1 = "world"
 	li1.SetTextContent(&stringliteral1)
 	return &multipleRoots{
-		roots: []*dom.Element{li0, li1},
+		Roots: []*dom.Element{li0, li1},
 	}
 }

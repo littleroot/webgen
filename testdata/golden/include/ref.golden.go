@@ -25,7 +25,7 @@ var (
 // source: testdata/standalone/attrs.html
 
 type attrs struct {
-	roots []*dom.Element
+	Roots []*dom.Element
 }
 
 func newAttrs() *attrs {
@@ -33,7 +33,7 @@ func newAttrs() *attrs {
 	input0.SetAttribute("type", "text")
 	input0.SetAttribute("class", "foo")
 	return &attrs{
-		roots: []*dom.Element{input0},
+		Roots: []*dom.Element{input0},
 	}
 }
 
@@ -41,17 +41,17 @@ func newAttrs() *attrs {
 
 type ref struct {
 	foo   *attrs
-	roots []*dom.Element
+	Roots []*dom.Element
 }
 
 func newRef() *ref {
 	div0 := _document.CreateElement("div", nil)
 	include0 := newAttrs()
-	for _, r := range include0.roots {
+	for _, r := range include0.Roots {
 		div0.AppendChild(&r.Node)
 	}
 	return &ref{
 		foo:   include0,
-		roots: []*dom.Element{div0},
+		Roots: []*dom.Element{div0},
 	}
 }

@@ -25,7 +25,7 @@ var (
 // source: testdata/standalone/attrs.html
 
 type attrs struct {
-	roots []*dom.Element
+	Roots []*dom.Element
 }
 
 func newAttrs() *attrs {
@@ -33,23 +33,23 @@ func newAttrs() *attrs {
 	input0.SetAttribute("type", "text")
 	input0.SetAttribute("class", "foo")
 	return &attrs{
-		roots: []*dom.Element{input0},
+		Roots: []*dom.Element{input0},
 	}
 }
 
 // source: testdata/include/absolutePath.html
 
 type absolutePath struct {
-	roots []*dom.Element
+	Roots []*dom.Element
 }
 
 func newAbsolutePath() *absolutePath {
 	div0 := _document.CreateElement("div", nil)
 	include0 := newAttrs()
-	for _, r := range include0.roots {
+	for _, r := range include0.Roots {
 		div0.AppendChild(&r.Node)
 	}
 	return &absolutePath{
-		roots: []*dom.Element{div0},
+		Roots: []*dom.Element{div0},
 	}
 }

@@ -25,7 +25,7 @@ var (
 // source: testdata/standalone/multipleRoots.html
 
 type multipleRoots struct {
-	roots []*dom.Element
+	Roots []*dom.Element
 }
 
 func newMultipleRoots() *multipleRoots {
@@ -36,23 +36,23 @@ func newMultipleRoots() *multipleRoots {
 	const stringliteral1 = "world"
 	li1.SetTextContent(&stringliteral1)
 	return &multipleRoots{
-		roots: []*dom.Element{li0, li1},
+		Roots: []*dom.Element{li0, li1},
 	}
 }
 
 // source: testdata/include/includeMultipleRoots.html
 
 type includeMultipleRoots struct {
-	roots []*dom.Element
+	Roots []*dom.Element
 }
 
 func newIncludeMultipleRoots() *includeMultipleRoots {
 	div0 := _document.CreateElement("div", nil)
 	include0 := newMultipleRoots()
-	for _, r := range include0.roots {
+	for _, r := range include0.Roots {
 		div0.AppendChild(&r.Node)
 	}
 	return &includeMultipleRoots{
-		roots: []*dom.Element{div0},
+		Roots: []*dom.Element{div0},
 	}
 }

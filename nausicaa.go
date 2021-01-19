@@ -196,7 +196,7 @@ func isDisallowedRefName(name string) (disallowed bool, reason string) {
 	if token.IsKeyword(name) {
 		return true, "Go keyword"
 	}
-	if name == "roots" {
+	if name == "Roots" {
 		return true, "reserved for internal use"
 	}
 	return false, ""
@@ -498,7 +498,7 @@ func (*generator) handleEndToken(w io.Writer, path, tagName, varName string,
 				Err:  errors.New("top-level <include> disallowed (hint: nest in <div> or <span>)"),
 			}
 		}
-		fmt.Fprintf(w, "for _, r := range %s.roots {\n", varName)
+		fmt.Fprintf(w, "for _, r := range %s.Roots {\n", varName)
 		fmt.Fprintf(w, "%s.AppendChild(&r.Node)\n", parent.VarName)
 		fmt.Fprintf(w, "}\n")
 		return nil
@@ -522,7 +522,7 @@ func writeReturn(w io.Writer, typeName string, refs map[string]tagAndVarAndTypeN
 			fmt.Fprintf(w, "%s: %s,\n", k, r.VarName)
 		}
 	}
-	fmt.Fprintf(w, "roots: []*dom.Element{%s},\n", strings.Join(roots, ", "))
+	fmt.Fprintf(w, "Roots: []*dom.Element{%s},\n", strings.Join(roots, ", "))
 	fmt.Fprint(w, "}")
 }
 
@@ -538,7 +538,7 @@ func writeTypeDefinition(w io.Writer, path, typeName string, refs map[string]tag
 		}
 		fmt.Fprintf(w, "%s %s\n", k, typeName)
 	}
-	fmt.Fprint(w, "roots []*dom.Element\n")
+	fmt.Fprint(w, "Roots []*dom.Element\n")
 	fmt.Fprint(w, "}")
 }
 

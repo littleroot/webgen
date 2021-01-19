@@ -25,13 +25,13 @@ var (
 // source: testdata/standalone/selfClosing.html
 
 type selfClosing struct {
-	roots []*dom.Element
+	Roots []*dom.Element
 }
 
 func newSelfClosing() *selfClosing {
 	img0 := _document.CreateElement("img", nil)
 	img0.SetAttribute("src", "dog.png")
 	return &selfClosing{
-		roots: []*dom.Element{img0},
+		Roots: []*dom.Element{img0},
 	}
 }

@@ -26,7 +26,7 @@ var (
 
 type ref struct {
 	readme *html.HTMLAnchorElement
-	roots  []*dom.Element
+	Roots  []*dom.Element
 }
 
 func newRef() *ref {
@@ -35,6 +35,6 @@ func newRef() *ref {
 	a0.SetTextContent(&stringliteral0)
 	return &ref{
 		readme: html.HTMLAnchorElementFromJS(a0),
-		roots:  []*dom.Element{a0},
+		Roots:  []*dom.Element{a0},
 	}
 }

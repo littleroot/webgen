@@ -25,7 +25,7 @@ var (
 // source: testdata/standalone/textContent.html
 
 type textContent struct {
-	roots []*dom.Element
+	Roots []*dom.Element
 }
 
 func newTextContent() *textContent {
@@ -47,6 +47,6 @@ func newTextContent() *textContent {
 	p2.SetTextContent(&stringliteral3)
 	article0.AppendChild(&p2.Node)
 	return &textContent{
-		roots: []*dom.Element{article0},
+		Roots: []*dom.Element{article0},
 	}
 }

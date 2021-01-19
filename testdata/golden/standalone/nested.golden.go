@@ -25,7 +25,7 @@ var (
 // source: testdata/standalone/nested.html
 
 type nested struct {
-	roots []*dom.Element
+	Roots []*dom.Element
 }
 
 func newNested() *nested {
@@ -46,6 +46,6 @@ func newNested() *nested {
 	li2.AppendChild(&a2.Node)
 	ul0.AppendChild(&li2.Node)
 	return &nested{
-		roots: []*dom.Element{ul0},
+		Roots: []*dom.Element{ul0},
 	}
 }
