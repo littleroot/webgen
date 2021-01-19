@@ -100,10 +100,10 @@ func main() {
 	}
 
 	if _, err := outViews.Write(views); err != nil {
-		log.Printf("write output views: %s", err)
+		stderr.Printf("write output views: %s", err)
 	}
 	if _, err := outCSS.Write(css); err != nil {
-		log.Printf("write output CSS: %s", err)
+		stderr.Printf("write output CSS: %s", err)
 	}
 }
 
