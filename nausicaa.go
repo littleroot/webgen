@@ -110,6 +110,9 @@ func Generate(inputFiles []string, opts Options) (viewsOut, cssOut []byte, err e
 	g := &generator{
 		opts:      opts,
 		generated: make(map[string]struct{}),
+		open: func(name string) (io.ReadCloser, error) {
+			return os.Open(name)
+		},
 	}
 	return g.run(inputFiles)
 }
@@ -127,6 +130,7 @@ type generator struct {
 	opts Options
 
 	generated        map[string]struct{}
+	open             func(string) (io.ReadCloser, error)
 	viewsBuf, cssBuf bytes.Buffer
 }
 
@@ -160,7 +164,7 @@ func (g *generator) generateOneFile(path string, history *orderedSet) error {
 		return nil // already generated
 	}
 
-	f, err := os.Open(path)
+	f, err := g.open(path)
 	if err != nil {
 		return err
 	}
@@ -181,7 +185,10 @@ func isDisallowedRefName(name string) (disallowed bool, reason string) {
 	if token.IsKeyword(name) {
 		return true, "Go keyword"
 	}
-	return name == "roots", "reserved for internal use"
+	if name == "roots" {
+		return true, "reserved for internal use"
+	}
+	return false, ""
 }
 
 type tagAndVarAndTypeName struct {
