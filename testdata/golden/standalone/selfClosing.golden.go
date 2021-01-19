@@ -22,19 +22,16 @@ var (
 	_document = webapi.GetDocument()
 )
 
-// source: testdata/standalone/ref.html
+// source: testdata/standalone/selfClosing.html
 
-type ref struct {
-	readme *html.HTMLAnchorElement
-	roots  []*dom.Element
+type selfClosing struct {
+	roots []*dom.Element
 }
 
-func newRef() *ref {
-	a0 := _document.CreateElement("a", nil)
-	const stringliteral0 = "README"
-	a0.SetTextContent(&stringliteral0)
-	return &ref{
-		readme: html.HTMLAnchorElementFromJS(a0),
-		roots:  []*dom.Element{a0},
+func newSelfClosing() *selfClosing {
+	img0 := _document.CreateElement("img", nil)
+	img0.SetAttribute("src", "dog.png")
+	return &selfClosing{
+		roots: []*dom.Element{img0},
 	}
 }

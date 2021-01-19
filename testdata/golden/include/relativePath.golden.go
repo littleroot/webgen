@@ -22,17 +22,34 @@ var (
 	_document = webapi.GetDocument()
 )
 
-// source: testdata/single/specific_element.html
+// source: testdata/standalone/attrs.html
 
-type specific_element struct {
+type attrs struct {
 	roots []*dom.Element
 }
 
-func newSpecific_element() *specific_element {
+func newAttrs() *attrs {
+	input0 := _document.CreateElement("input", nil)
+	input0.SetAttribute("type", "text")
+	input0.SetAttribute("class", "foo")
+	return &attrs{
+		roots: []*dom.Element{input0},
+	}
+}
+
+// source: testdata/include/relativePath.html
+
+type relativePath struct {
+	roots []*dom.Element
+}
+
+func newRelativePath() *relativePath {
 	div0 := _document.CreateElement("div", nil)
-	audio0 := _document.CreateElement("audio", nil)
-	div0.AppendChild(&audio0.Node)
-	return &specific_element{
+	include0 := newAttrs()
+	for _, r := range include0.roots {
+		div0.AppendChild(&r.Node)
+	}
+	return &relativePath{
 		roots: []*dom.Element{div0},
 	}
 }

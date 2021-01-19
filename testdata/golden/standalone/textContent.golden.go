@@ -22,13 +22,13 @@ var (
 	_document = webapi.GetDocument()
 )
 
-// source: testdata/single/text_content.html
+// source: testdata/standalone/textContent.html
 
-type text_content struct {
+type textContent struct {
 	roots []*dom.Element
 }
 
-func newText_content() *text_content {
+func newTextContent() *textContent {
 	article0 := _document.CreateElement("article", nil)
 	h10 := _document.CreateElement("h1", nil)
 	const stringliteral0 = "Title"
@@ -46,7 +46,7 @@ func newText_content() *text_content {
 	const stringliteral3 = "Lorem ipsum with newlines"
 	p2.SetTextContent(&stringliteral3)
 	article0.AppendChild(&p2.Node)
-	return &text_content{
+	return &textContent{
 		roots: []*dom.Element{article0},
 	}
 }

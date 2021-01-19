@@ -12,18 +12,18 @@ import (
 	"github.com/kylelemons/godebug/diff"
 )
 
-func TestGenerate(t *testing.T) {
+func TestGenerateStandalone(t *testing.T) {
 	files := []string{
 		"attrs",
 		"Exported",
-		"multiple_roots",
+		"multipleRoots",
 		"nested",
 		"ref",
-		"self_closing",
-		"specific_element",
+		"selfClosing",
+		"specificElement",
 		"style",
-		"style_only",
-		"text_content",
+		"styleOnly",
+		"textContent",
 		"unexported",
 	}
 
@@ -40,17 +40,56 @@ func TestGenerate(t *testing.T) {
 	for _, f := range files {
 		t.Run(f, func(t *testing.T) {
 			g.reset()
-			path := filepath.Join("testdata", "single", f+".html")
+			path := filepath.Join("testdata", "standalone", f+".html")
 
-			expectv, err := ioutil.ReadFile(filepath.Join("testdata", "golden", "single", f+".golden.go"))
+			expectv, err := ioutil.ReadFile(filepath.Join("testdata", "golden", "standalone", f+".golden.go"))
 			Ok(t, err)
-			expectc, err := ioutil.ReadFile(filepath.Join("testdata", "golden", "single", f+".golden.css"))
+			expectc, err := ioutil.ReadFile(filepath.Join("testdata", "golden", "standalone", f+".golden.css"))
 			Ok(t, err)
 
 			gotv, gotc, err := g.run([]string{path})
 			Ok(t, err)
 			EqualBytes(t, expectv, gotv, bytes.TrimSpace)
 			EqualBytes(t, expectc, gotc, bytes.TrimSpace)
+		})
+	}
+}
+
+func TestGenerateInclude(t *testing.T) {
+	files := [][2]string{
+		{"absolutePath", "testdata"},
+		{"includeMultipleRoots", ""},
+		{"multilevel", ""},
+		{"ref", ""},
+		{"relativePath", ""},
+	}
+
+	g := generator{
+		opts: Options{
+			Package: "ui",
+		},
+		generated: make(map[string]struct{}),
+		open: func(name string) (io.ReadCloser, error) {
+			return os.Open(name)
+		},
+	}
+
+	for _, f := range files {
+		t.Run(f[0], func(t *testing.T) {
+			g.reset()
+			if f[1] == "" {
+				g.opts.Root = ""
+			} else {
+				g.opts.Root = f[1]
+			}
+			path := filepath.Join("testdata", "include", f[0]+".html")
+
+			expectv, err := ioutil.ReadFile(filepath.Join("testdata", "golden", "include", f[0]+".golden.go"))
+			Ok(t, err)
+
+			gotv, _, err := g.run([]string{path})
+			Ok(t, err)
+			EqualBytes(t, expectv, gotv, bytes.TrimSpace)
 		})
 	}
 }
@@ -62,13 +101,13 @@ func TestGenerateError(t *testing.T) {
 	}{
 		// TODO: do something correct for this test case, then uncomment.
 		// right now, format.Source() panics.
-		// {"bad_html", ""},
-		{"cycle0_include", "cycle in include paths (cycle0_include.html -> cycle1_include.html -> cycle2_include.html -> cycle0_include.html)"},
-		{"disallowed_ref_name_keyword", `ref name "select" disallowed (Go keyword)`},
-		{"disallowed_ref_name_roots", `ref name "roots" disallowed (reserved for internal use)`},
-		{"invalid_attr_include", `<include> specifies invalid attribute "foo"`},
-		{"missing_path_attr_include", `missing required "path" attribute in <include>`},
-		{"repeated_ref", `ref name "foo" present multiple times (previous occurence in <div>)`},
+		// {"badHTML", ""},
+		{"cycle0Include", "cycle in include paths (cycle0Include.html -> cycle1Include.html -> cycle2Include.html -> cycle0Include.html)"},
+		{"disallowedRefNameKeyword", `ref name "select" disallowed (Go keyword)`},
+		{"disallowedRefNameRoots", `ref name "roots" disallowed (reserved for internal use)`},
+		{"invalidAttrInclude", `<include> specifies invalid attribute "foo"`},
+		{"missingPathAttrInclude", `missing required "path" attribute in <include>`},
+		{"repeatedRef", `ref name "foo" present multiple times (previous occurence in <div>)`},
 	}
 
 	g := generator{

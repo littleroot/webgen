@@ -22,7 +22,7 @@ var (
 	_document = webapi.GetDocument()
 )
 
-// source: testdata/single/Exported.html
+// source: testdata/standalone/Exported.html
 
 type Exported struct {
 	roots []*dom.Element

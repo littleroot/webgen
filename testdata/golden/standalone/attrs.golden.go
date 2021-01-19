@@ -22,7 +22,7 @@ var (
 	_document = webapi.GetDocument()
 )
 
-// source: testdata/single/attrs.html
+// source: testdata/standalone/attrs.html
 
 type attrs struct {
 	roots []*dom.Element

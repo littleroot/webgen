@@ -22,16 +22,17 @@ var (
 	_document = webapi.GetDocument()
 )
 
-// source: testdata/single/self_closing.html
+// source: testdata/standalone/specificElement.html
 
-type self_closing struct {
+type specificElement struct {
 	roots []*dom.Element
 }
 
-func newSelf_closing() *self_closing {
-	img0 := _document.CreateElement("img", nil)
-	img0.SetAttribute("src", "dog.png")
-	return &self_closing{
-		roots: []*dom.Element{img0},
+func newSpecificElement() *specificElement {
+	div0 := _document.CreateElement("div", nil)
+	audio0 := _document.CreateElement("audio", nil)
+	div0.AppendChild(&audio0.Node)
+	return &specificElement{
+		roots: []*dom.Element{div0},
 	}
 }

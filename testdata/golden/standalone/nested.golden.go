@@ -22,7 +22,7 @@ var (
 	_document = webapi.GetDocument()
 )
 
-// source: testdata/single/nested.html
+// source: testdata/standalone/nested.html
 
 type nested struct {
 	roots []*dom.Element

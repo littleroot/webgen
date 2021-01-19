@@ -22,7 +22,7 @@ var (
 	_document = webapi.GetDocument()
 )
 
-// source: testdata/single/style.html
+// source: testdata/standalone/style.html
 
 type style struct {
 	roots []*dom.Element

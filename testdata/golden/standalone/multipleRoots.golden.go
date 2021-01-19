@@ -22,20 +22,20 @@ var (
 	_document = webapi.GetDocument()
 )
 
-// source: testdata/single/multiple_roots.html
+// source: testdata/standalone/multipleRoots.html
 
-type multiple_roots struct {
+type multipleRoots struct {
 	roots []*dom.Element
 }
 
-func newMultiple_roots() *multiple_roots {
+func newMultipleRoots() *multipleRoots {
 	li0 := _document.CreateElement("li", nil)
 	const stringliteral0 = "hello"
 	li0.SetTextContent(&stringliteral0)
 	li1 := _document.CreateElement("li", nil)
 	const stringliteral1 = "world"
 	li1.SetTextContent(&stringliteral1)
-	return &multiple_roots{
+	return &multipleRoots{
 		roots: []*dom.Element{li0, li1},
 	}
 }
