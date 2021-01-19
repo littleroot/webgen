@@ -303,7 +303,7 @@ tokenizeView:
 
 		case html.EndTagToken:
 			curr := names.pop()
-			g.handleEndToken(&funcBuf, curr.TagName, curr.VarName, &names,
+			g.handleEndToken(&funcBuf, path, curr.TagName, curr.VarName, &names,
 				func(root string) { roots = append(roots, root) })
 
 		case html.SelfClosingTagToken:
@@ -321,7 +321,7 @@ tokenizeView:
 				return nil, nil, err
 			}
 
-			g.handleEndToken(&funcBuf, tagName, varName, &names,
+			g.handleEndToken(&funcBuf, path, tagName, varName, &names,
 				func(root string) { roots = append(roots, root) })
 
 		case html.CommentToken, html.DoctypeToken:
@@ -479,21 +479,32 @@ func (g *generator) handleStartInclude(w io.Writer, z *html.Tokenizer,
 	return nil
 }
 
-func (*generator) handleEndToken(w io.Writer, tagName, varName string, names *stack, addRoot func(string)) {
+func (*generator) handleEndToken(w io.Writer, path, tagName, varName string,
+	names *stack, addRoot func(string)) error {
 	parent, ok := names.peek()
-	if !ok {
-		// no parent; record as root
-		addRoot(varName)
-		return
-	}
 
 	if tagName == "include" {
+		if !ok {
+			// TODO: top-level <include> *can* be allowed. We just need to do
+			// a bit more code generation.
+			return Error{
+				Path: path,
+				Err:  errors.New("top-level <include> disallowed (hint: nest in <div> or <span>)"),
+			}
+		}
 		fmt.Fprintf(w, "for _, r := range %s.roots {\n", varName)
 		fmt.Fprintf(w, "%s.AppendChild(&r.Node)\n", parent.VarName)
 		fmt.Fprintf(w, "}\n")
-	} else {
-		fmt.Fprintf(w, "%s.AppendChild(&%s.Node)\n", parent.VarName, varName)
+		return nil
 	}
+
+	if !ok {
+		// no parent; record as root
+		addRoot(varName)
+		return nil
+	}
+	fmt.Fprintf(w, "%s.AppendChild(&%s.Node)\n", parent.VarName, varName)
+	return nil
 }
 
 func writeReturn(w io.Writer, typeName string, refs map[string]tagAndVarAndTypeName, roots []string) {

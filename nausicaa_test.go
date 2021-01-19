@@ -108,6 +108,7 @@ func TestGenerateError(t *testing.T) {
 		{"invalidAttrInclude", `<include> specifies invalid attribute "foo"`},
 		{"missingPathAttrInclude", `missing required "path" attribute in <include>`},
 		{"repeatedRef", `ref name "foo" present multiple times (previous occurence in <div>)`},
+		{"topLevelInclude", `top-level <include> disallowed  (hint: nest in <div> or <span>)`},
 	}
 
 	g := generator{
