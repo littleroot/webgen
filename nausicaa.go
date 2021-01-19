@@ -319,7 +319,7 @@ tokenizeView:
 		// NOTE: We dont't check for the end </style> tag.
 	}
 
-	return io.MultiReader(&typeBuf, &funcBuf), &cssBuf, nil
+	return io.MultiReader(&typeBuf, strings.NewReader("\n\n"), &funcBuf), &cssBuf, nil
 }
 
 func (g *generator) handleStartToken(w io.Writer, z *html.Tokenizer,
@@ -489,7 +489,7 @@ func writeTypeDefinition(w io.Writer, path, typeName string, refs map[string]tag
 		fmt.Fprintf(w, "%s %s\n", k, typeName)
 	}
 	fmt.Fprint(w, "roots []*dom.Element\n")
-	fmt.Fprint(w, "}\n\n")
+	fmt.Fprint(w, "}")
 }
 
 // varNames returns successive variable names to use in a component's
