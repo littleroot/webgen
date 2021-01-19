@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/nishanths/nausicaa"
+	"github.com/littleroot/nausicaa"
 )
 
 const (

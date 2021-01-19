@@ -1,4 +1,4 @@
-module github.com/nishanths/nausicaa
+module github.com/littleroot/nausicaa
 
 go 1.15
 
