@@ -171,8 +171,11 @@ func (g *generator) generateOneFile(path string, history *orderedSet) error {
 	return nil
 }
 
-func isDisallowedRefName(name string) bool {
-	return token.IsKeyword(name) || name == "roots"
+func isDisallowedRefName(name string) (disallowed bool, reason string) {
+	if token.IsKeyword(name) {
+		return true, "Go keyword"
+	}
+	return name == "roots", "reserved for internal use"
 }
 
 type tagAndVarAndTypeName struct {
@@ -181,8 +184,8 @@ type tagAndVarAndTypeName struct {
 	TypeName string
 }
 
-func errDisallowedRefName(ref string) error {
-	return fmt.Errorf("ref name %q disallowed", ref)
+func errDisallowedRefName(ref, reason string) error {
+	return fmt.Errorf("ref name %q disallowed (%s)", ref, reason)
 }
 
 func errRepeatedRefName(ref, prevTagName string) error {
@@ -227,7 +230,10 @@ tokenizeView:
 			if z.Err() == io.EOF {
 				break tokenizeView
 			}
-			return z.Err()
+			return Error{
+				Path: path,
+				Err:  fmt.Errorf("tokenize HTML: %w", z.Err()),
+			}
 
 		case html.TextToken:
 			if names.len() == 0 {
@@ -324,10 +330,10 @@ func (g *generator) handleStartRegular(w io.Writer, z *html.Tokenizer,
 	err := attrsFunc(z, hasAttr, func(k, v []byte) error {
 		if equalsRef(k) {
 			v := string(v)
-			if isDisallowedRefName(v) {
+			if disallowed, reason := isDisallowedRefName(v); disallowed {
 				return Error{
 					Path: path,
-					Err:  errDisallowedRefName(v),
+					Err:  errDisallowedRefName(v, reason),
 				}
 			}
 			ex, ok := refs[v]
@@ -373,15 +379,17 @@ func (g *generator) handleStartInclude(w io.Writer, z *html.Tokenizer,
 
 		if isRef {
 			val := string(v)
-			if isDisallowedRefName(val) {
+			if disallowed, reason := isDisallowedRefName(val); disallowed {
 				return Error{
 					Path: path,
-					Err:  errDisallowedRefName(val),
+					Err:  errDisallowedRefName(val, reason),
 				}
 			}
 			refAttrVal = val
 			return nil
 		}
+
+		// At this point, we have a "path" atrribute.
 
 		foundPathAttr = true
 		val := string(v)
