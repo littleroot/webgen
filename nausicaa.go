@@ -244,7 +244,7 @@ func (g *generator) generateComponent(
 	z := html.NewTokenizer(in)
 	namer := newVarNames()
 
-	var hasView bool                              // becomes true when a top-level, non-<style> start tag or self-closing tag is seen
+	var hasView bool                              // becomes true if a top-level, non-<style> start tag or self-closing tag is seen
 	var names stack                               // also used to record depth
 	var insideStyle bool                          // whether we break out inside top-level <style>
 	refs := make(map[string]tagAndVarAndTypeName) // ref attribute value -> names

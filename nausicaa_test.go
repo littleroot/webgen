@@ -56,7 +56,7 @@ func TestGenerateStandalone(t *testing.T) {
 }
 
 func TestGenerateInclude(t *testing.T) {
-	files := [][2]string{
+	testcases := [][2]string{
 		{"absolutePath", "testdata"},
 		{"includeMultipleRoots", ""},
 		{"multilevel", ""},
@@ -74,7 +74,7 @@ func TestGenerateInclude(t *testing.T) {
 		},
 	}
 
-	for _, f := range files {
+	for _, f := range testcases {
 		t.Run(f[0], func(t *testing.T) {
 			g.reset()
 			if f[1] == "" {
@@ -129,6 +129,7 @@ func TestGenerateError(t *testing.T) {
 			_, _, err := g.run([]string{path})
 			if err == nil {
 				t.Errorf("err unexpectedly nil")
+				return
 			}
 			if !strings.HasSuffix(err.Error(), tt.err) {
 				t.Errorf("expected err to end with: %q, got: %q", tt.err, err.Error())
