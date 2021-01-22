@@ -33,10 +33,11 @@ Flags:
    --root=<dir>        Root directory for absolute paths in <include />
                        elements (default: ".")
 
-Examples:
-   nausicaa Button.html SegmentedControl.html
-   nausicaa $(find ./components -name '*.html')
-   nausicaa --package=ui --outviews=my/pkg/ui/ui.go Select.html
+Example:
+   nausicaa --package=ui \
+            --outviews=ui.go \
+            --outcss=public/components.css \
+            components/*.html
 `
 
 var (

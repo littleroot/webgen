@@ -22,7 +22,7 @@ as HTML. The generated Go code uses the [`webapi`][2] package. Component
 files can also specify styles for the component in a top-level `<style>` element
 at the end of the file.
 
-Consider a component in `FooBar.html`:
+Consider a simple component in `FooBar.html`:
 
 ```html
 <div class="FooBar"></div>
@@ -35,8 +35,8 @@ Consider a component in `FooBar.html`:
 Running `nausicaa` generates the Go type for the component and its constructor.
 The Go type name is derived from the filename of the component's `.html` file.
 If you would like the type and its constructor to be exported, begin the
-filename an with uppercase letter, akin to how you would name an exported
-type in Go. (Hint: Use camel-case for the filenames, in order to generate
+filename with an uppercase letter, akin to how you would name an exported
+type in Go. (Hint: Use title-case or camel-case for the filenames to generate
 idiomatic Go code.)
 
 ```go
@@ -58,30 +58,6 @@ styles from all input component files (in this case, just the single file).
 
 ```css
 .FooBar { font-family: "Inter"; }
-```
-
-### Command line usage
-
-Run `nausicaa --help` to print help.
-
-```
-Usage:
-   nausicaa [--outcss=<file>] [--outviews=<file>] [--package=<name>]
-            [--root=<dir>] <input-file>...
-   nausicaa (-h | --help)
-
-Flags:
-   -h --help           Print help and exit
-   --outcss=<file>     Write CSS output to specified file instead of stdout
-   --outviews=<file>   Write views output to specified file instead of stdout
-   --package=<name>    Package name to use in output (default: "views")
-   --root=<dir>        Root directory for absolute paths in <include />
-                       elements (default: ".")
-
-Examples:
-   nausicaa Button.html SegmentedControl.html
-   nausicaa $(find ./components -name '*.html')
-   nausicaa --package=ui --outviews=my/pkg/ui/ui.go Select.html
 ```
 
 ## License
