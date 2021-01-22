@@ -197,7 +197,7 @@ func isDisallowedRefName(name string) (disallowed bool, reason string) {
 		return true, "Go keyword"
 	}
 	if name == "Roots" {
-		return true, "reserved for internal use"
+		return true, "internal use"
 	}
 	return false, ""
 }
