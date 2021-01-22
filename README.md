@@ -6,15 +6,15 @@ Inspired by [tomato][1].
 
 For documentation, see https://littleroot.github.io/nausicaa.
 
-### Install
+## Install
 
 ```
 go get github.com/littleroot/nausicaa/cmd/nausicaa
 ```
 
-### Documentation
+## Documentation
 
-#### Basics
+### Basics
 
 The nausicaa command outputs Go code to construct your components writen
 in HTML files. The generated Go code uses the [`webapi`][2] package. Component
