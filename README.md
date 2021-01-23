@@ -12,7 +12,7 @@ For command line help text, including examples, run `webgen -h`.
 
 ## Why?
 
-It is tedious, hard to verify correctness, and looks ugly to construct DOM
+It is tedious, is difficult to verify correctness, and looks ugly to construct DOM
 with `document.createElement()` or its `webapi` equivalent
 `webapi.GetDocument().CreateElement()`.
 
