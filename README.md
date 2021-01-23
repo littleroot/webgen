@@ -62,6 +62,10 @@ func NewFooBar() *FooBar {
 		roots: []*dom.Element{div0},
 	}
 }
+
+func (v *FooBar) Roots() []*dom.Element {
+	return v.roots
+}
 ```
 
 As mentioned earlier, Nausicaä also generates CSS output that is the concatenation
