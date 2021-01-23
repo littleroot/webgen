@@ -1,4 +1,4 @@
-module github.com/littleroot/nausicaa
+module github.com/littleroot/webgen
 
 go 1.15
 

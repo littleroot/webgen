@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/littleroot/nausicaa"
+	"github.com/littleroot/webgen"
 )
 
 const (
@@ -21,9 +21,9 @@ var (
 
 const usage = `
 Usage:
-   nausicaa [--outcss=<file>] [--outviews=<file>] [--package=<name>]
+   webgen [--outcss=<file>] [--outviews=<file>] [--package=<name>]
             [--root=<dir>] <input-file>...
-   nausicaa (-h | --help)
+   webgen (-h | --help)
 
 Flags:
    -h --help           Print help and exit
@@ -34,7 +34,7 @@ Flags:
                        elements (default: ".")
 
 Example:
-   nausicaa --package=ui \
+   webgen --package=ui \
             --outviews=ui.go \
             --outcss=public/components.css \
             components/*.html
@@ -89,12 +89,12 @@ func main() {
 		defer outViews.Close()
 	}
 
-	opts := nausicaa.Options{
+	opts := webgen.Options{
 		Package: fPackageName,
 		Root:    fRoot,
 	}
 
-	views, css, err := nausicaa.Generate(args, opts)
+	views, css, err := webgen.Generate(args, opts)
 	if err != nil {
 		stderr.Printf("%s", err)
 		os.Exit(1)

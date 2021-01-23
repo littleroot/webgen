@@ -1,4 +1,4 @@
-package nausicaa
+package webgen
 
 import "fmt"
 

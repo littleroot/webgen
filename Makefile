@@ -1,6 +1,6 @@
 .PHONY: build
 build:
-	go build ./cmd/nausicaa
+	go build ./cmd/webgen
 
 .PHONY: vet
 vet:
