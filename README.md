@@ -91,9 +91,9 @@ to write the generated Go and generated CSS, respectively.
 
 ### The `ref` attribute
 
-Refs allow access to an element of your component from Go code. For instance,
-you might want a reference to an element in your component in order to set
-its `textContent` dynamically or to add an event listener.
+Adding a `ref` attribute to an element allows for easy access to that element
+from Go code. For instance, you might want a reference to an element in your
+component in order to set its `textContent` dynamically or to add an event listener.
 
 ```html
 <div class="Notification">
@@ -109,7 +109,7 @@ lowercase letter to produce an unexported field.
 ```go
 type Notification struct {
 	Message *html.HTMLSpanElement
-	roots   []*dom.Element
+	roots []*dom.Element
 }
 ```
 
@@ -129,19 +129,20 @@ in the current component. For example:
 
 ```html
 <div>
-	<include path="path/to/Other.html" />
+	<span>hello, world!</span>
+	<include path="path/to/otherComponent.html" />
 </div>
 ```
 
-The contents of the component at `path/to/Other.html` will replace the
-`<include />` element in the generated code.
+The contents of the component at `path/to/otherComponent.html` will replace the
+`<include>` element in the generated code.
 
 The `path` attribute is required. It can either be a relative path (not starting with `/`)
 or an absolute path (starting with `/`). If a relative path is used, it is
 resolved relative to the current component's directory. If an absolute path is
 used, the path is rooted at the value specified by the `--root` flag.
 
-Additionally, a [`ref`](#the-ref-attribute) attribute may be specified.
+An `<include>` element may also optionally have a [`ref`](#the-ref-attribute) attribute.
 
 ### The `Roots` method
 
