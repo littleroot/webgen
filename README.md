@@ -17,6 +17,13 @@ go get github.com/littleroot/nausicaa/cmd/nausicaa
 
 ## Documentation
 
+### Contents
+
+- [Basics](#basics): An overview
+- [The `ref` attribute](#the-ref-attribute): Obtain a reference to an element
+- [The `<include>` element](#the-include-element): Composition of components
+- [The `Roots` field](#the-roots-field): Access the top-level element(s) of a component
+
 ### Basics
 
 Nausicaä generates Go code corresponding to component views
@@ -26,7 +33,7 @@ the component in a top-level `<style>` element at the end of the file. Nausicaä
 generates a single CSS file that is the concatenation of styles from all
 input files.
 
-Consider a simple component in `FooBar.html`:
+Consider a simple component in `FooBar.html`.
 
 ```html
 <div class="FooBar"></div>
@@ -71,7 +78,7 @@ to write the generated Go and generates CSS, respectively.
 
 Refs allow access to an element in your component from Go code. For instance,
 you might want a reference to an element in your component in order to set
-its `textContent` dynamically:
+its `textContent` dynamically or to add an event listener.
 
 ```html
 <div class="Notification">
@@ -91,7 +98,7 @@ type Notification struct {
 }
 ```
 
-You can then access the element from your application code:
+You can then access the element from your application code.
 
 ```go
 text := "Email archived."
