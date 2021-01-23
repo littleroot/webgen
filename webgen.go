@@ -447,6 +447,7 @@ func (g *generator) handleStartInclude(w io.Writer, z *html.Tokenizer,
 		}
 
 		// At this point, we have a "path" atrribute.
+		assert(isPath)
 
 		foundPathAttr = true
 		val := string(v)
@@ -672,4 +673,10 @@ func formatTextContent(b []byte) []byte {
 	b = bytes.ReplaceAll(b, newline, nil)
 	b = bytes.TrimFunc(b, isSpaceExceptNBSP)
 	return b
+}
+
+func assert(v bool) {
+	if !v {
+		panic("assertion failed")
+	}
 }
