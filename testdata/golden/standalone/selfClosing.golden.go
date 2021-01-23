@@ -35,3 +35,7 @@ func newSelfClosing() *selfClosing {
 		roots: []*dom.Element{img0},
 	}
 }
+
+func (v *selfClosing) Roots() []*dom.Element {
+	return v.roots
+}

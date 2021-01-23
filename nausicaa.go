@@ -341,13 +341,17 @@ tokenizeView:
 	if hasView {
 		writeReturn(&funcBuf, typeName, refs, roots)
 		fmt.Fprint(&funcBuf, "\n}\n\n")
+
+		writeRootsMethod(&funcBuf, typeName)
+		fmt.Fprint(&funcBuf, "\n\n")
 	}
 
 	var typeBuf bytes.Buffer
-
 	if hasView {
 		writeTypeDefinition(&typeBuf, path, typeName, refs)
 	}
+
+	viewsBuf := io.MultiReader(&typeBuf, strings.NewReader("\n\n"), &funcBuf)
 
 	var cssBuf bytes.Buffer
 	if insideStyle {
@@ -361,7 +365,7 @@ tokenizeView:
 		// NOTE: We dont't check for the end </style> tag.
 	}
 
-	return io.MultiReader(&typeBuf, strings.NewReader("\n\n"), &funcBuf), &cssBuf, nil
+	return viewsBuf, &cssBuf, nil
 }
 
 func (g *generator) handleStartToken(w io.Writer, z *html.Tokenizer,
@@ -527,6 +531,12 @@ func writeReturn(w io.Writer, typeName string, refs map[string]tagAndVarAndTypeN
 	}
 	fmt.Fprintf(w, "roots: []*dom.Element{%s},\n", strings.Join(roots, ", "))
 	fmt.Fprint(w, "}")
+}
+
+func writeRootsMethod(w io.Writer, typeName string) {
+	fmt.Fprintf(w, "func (v *%s) Roots() []*dom.Element {\n", typeName)
+	fmt.Fprintf(w, "return v.roots\n")
+	fmt.Fprintf(w, "}")
 }
 
 func writeTypeDefinition(w io.Writer, path, typeName string, refs map[string]tagAndVarAndTypeName) {

@@ -37,6 +37,10 @@ func newAttrs() *attrs {
 	}
 }
 
+func (v *attrs) Roots() []*dom.Element {
+	return v.roots
+}
+
 // source: testdata/include/ref.html
 
 type ref struct {
@@ -54,4 +58,8 @@ func newRef() *ref {
 		foo:   include0,
 		roots: []*dom.Element{div0},
 	}
+}
+
+func (v *ref) Roots() []*dom.Element {
+	return v.roots
 }

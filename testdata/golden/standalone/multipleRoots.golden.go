@@ -39,3 +39,7 @@ func newMultipleRoots() *multipleRoots {
 		roots: []*dom.Element{li0, li1},
 	}
 }
+
+func (v *multipleRoots) Roots() []*dom.Element {
+	return v.roots
+}

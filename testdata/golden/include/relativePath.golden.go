@@ -37,6 +37,10 @@ func newAttrs() *attrs {
 	}
 }
 
+func (v *attrs) Roots() []*dom.Element {
+	return v.roots
+}
+
 // source: testdata/include/relativePath.html
 
 type relativePath struct {
@@ -52,4 +56,8 @@ func newRelativePath() *relativePath {
 	return &relativePath{
 		roots: []*dom.Element{div0},
 	}
+}
+
+func (v *relativePath) Roots() []*dom.Element {
+	return v.roots
 }

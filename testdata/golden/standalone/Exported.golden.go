@@ -35,3 +35,7 @@ func NewExported() *Exported {
 		roots: []*dom.Element{div0},
 	}
 }
+
+func (v *Exported) Roots() []*dom.Element {
+	return v.roots
+}

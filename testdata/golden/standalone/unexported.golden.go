@@ -35,3 +35,7 @@ func newUnexported() *unexported {
 		roots: []*dom.Element{div0},
 	}
 }
+
+func (v *unexported) Roots() []*dom.Element {
+	return v.roots
+}

@@ -37,6 +37,10 @@ func newAttrs() *attrs {
 	}
 }
 
+func (v *attrs) Roots() []*dom.Element {
+	return v.roots
+}
+
 // source: testdata/include/absolutePath.html
 
 type absolutePath struct {
@@ -52,4 +56,8 @@ func newAbsolutePath() *absolutePath {
 	return &absolutePath{
 		roots: []*dom.Element{div0},
 	}
+}
+
+func (v *absolutePath) Roots() []*dom.Element {
+	return v.roots
 }

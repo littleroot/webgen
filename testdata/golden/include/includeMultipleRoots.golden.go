@@ -40,6 +40,10 @@ func newMultipleRoots() *multipleRoots {
 	}
 }
 
+func (v *multipleRoots) Roots() []*dom.Element {
+	return v.roots
+}
+
 // source: testdata/include/includeMultipleRoots.html
 
 type includeMultipleRoots struct {
@@ -55,4 +59,8 @@ func newIncludeMultipleRoots() *includeMultipleRoots {
 	return &includeMultipleRoots{
 		roots: []*dom.Element{div0},
 	}
+}
+
+func (v *includeMultipleRoots) Roots() []*dom.Element {
+	return v.roots
 }

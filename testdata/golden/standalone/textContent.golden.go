@@ -50,3 +50,7 @@ func newTextContent() *textContent {
 		roots: []*dom.Element{article0},
 	}
 }
+
+func (v *textContent) Roots() []*dom.Element {
+	return v.roots
+}

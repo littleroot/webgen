@@ -38,3 +38,7 @@ func newRef() *ref {
 		roots:  []*dom.Element{a0},
 	}
 }
+
+func (v *ref) Roots() []*dom.Element {
+	return v.roots
+}

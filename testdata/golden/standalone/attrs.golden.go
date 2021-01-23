@@ -36,3 +36,7 @@ func newAttrs() *attrs {
 		roots: []*dom.Element{input0},
 	}
 }
+
+func (v *attrs) Roots() []*dom.Element {
+	return v.roots
+}

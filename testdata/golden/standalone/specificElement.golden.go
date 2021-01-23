@@ -36,3 +36,7 @@ func newSpecificElement() *specificElement {
 		roots: []*dom.Element{div0},
 	}
 }
+
+func (v *specificElement) Roots() []*dom.Element {
+	return v.roots
+}

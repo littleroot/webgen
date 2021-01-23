@@ -49,3 +49,7 @@ func newNested() *nested {
 		roots: []*dom.Element{ul0},
 	}
 }
+
+func (v *nested) Roots() []*dom.Element {
+	return v.roots
+}

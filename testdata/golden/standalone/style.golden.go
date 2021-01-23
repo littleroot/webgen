@@ -35,3 +35,7 @@ func newStyle() *style {
 		roots: []*dom.Element{div0},
 	}
 }
+
+func (v *style) Roots() []*dom.Element {
+	return v.roots
+}
