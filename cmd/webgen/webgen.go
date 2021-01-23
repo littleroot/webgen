@@ -20,9 +20,12 @@ var (
 )
 
 const usage = `
+Generate webapi package Go code for the js/wasm architecture from components
+defined in HTML.
+
 Usage:
    webgen [--outcss=<file>] [--outviews=<file>] [--package=<name>]
-            [--root=<dir>] <input-file>...
+          [--root=<dir>] <input-file>...
    webgen (-h | --help)
 
 Flags:
@@ -35,9 +38,9 @@ Flags:
 
 Example:
    webgen --package=ui \
-            --outviews=ui.go \
-            --outcss=public/components.css \
-            components/*.html
+          --outviews=ui.go \
+          --outcss=public/components.css \
+          components/*.html
 `
 
 var (
