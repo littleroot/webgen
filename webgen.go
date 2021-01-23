@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"text/template"
 	"unicode"
@@ -278,7 +279,7 @@ tokenizeView:
 			}
 			parent, _ := names.peek()
 			strName := namer.next("stringliteral")
-			fmt.Fprintf(&funcBuf, "const %s = %q\n", strName, text)
+			fmt.Fprintf(&funcBuf, "const %s = %s\n", strName, strconv.Quote(string(text)))
 			fmt.Fprintf(&funcBuf, "%s.SetTextContent(&%s)\n", parent.VarName, strName)
 
 		case html.StartTagToken:
