@@ -88,7 +88,7 @@ of styles from all input component files (in this example, just the single file)
 ```
 
 Use the `--outviews` and `--outcss` flags to specify the location
-to write the generated Go and generates CSS, respectively.
+to write the generated Go and generated CSS, respectively.
 
 ### The `ref` attribute
 
