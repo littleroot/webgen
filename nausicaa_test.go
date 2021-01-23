@@ -104,6 +104,7 @@ func TestGenerateError(t *testing.T) {
 		// {"badHTML", ""},
 		{"cycle0Include", "cycle in include paths (cycle0Include.html -> cycle1Include.html -> cycle2Include.html -> cycle0Include.html)"},
 		{"disallowedRefNameKeyword", `ref name "select" disallowed (Go keyword)`},
+		{"disallowedRefNameIdentifier", `ref name "*" disallowed (invalid Go identifier)`},
 		{"disallowedRefNameRoots", `ref name "Roots" disallowed (internal use)`},
 		{"invalidAttrInclude", `<include> specifies invalid attribute "foo"`},
 		{"missingPathAttrInclude", `missing required "path" attribute in <include>`},

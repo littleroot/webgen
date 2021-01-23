@@ -196,6 +196,9 @@ func isDisallowedRefName(name string) (disallowed bool, reason string) {
 	if token.IsKeyword(name) {
 		return true, "Go keyword"
 	}
+	if !token.IsIdentifier(name) {
+		return true, "invalid Go identifier"
+	}
 	if name == "Roots" {
 		return true, "internal use"
 	}
@@ -577,7 +580,6 @@ func equalsPath(k []byte) bool {
 
 var (
 	newline = []byte{'\n'}
-	slash   = []byte{'/'}
 )
 
 func componentTypeName(filename string) string {
