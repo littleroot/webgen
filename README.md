@@ -10,6 +10,15 @@ For documentation, see below.
 
 For command line help text, including examples, run `webgen -h`.
 
+## Why?
+
+It is tedious, hard to verify correctness, and looks ugly to construct DOM
+with `document.createElement()` or its `webapi` equivalent
+`webapi.GetDocument.CreateElement()`.
+
+So define your components in HTML, which doesn't have these drawbacks,
+and generate Go types and constructor functions for them.
+
 ## Install
 
 ```
