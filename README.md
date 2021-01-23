@@ -137,7 +137,7 @@ The generated component types satisfy this Go interface.
 
 ```go
 interface {
-	Roots() *[]dom.Element
+	Roots() []*dom.Element
 }
 ```
 
