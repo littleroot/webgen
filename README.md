@@ -161,7 +161,7 @@ A few examples:
 
 ```go
 // Append the Select component inside a <form>.
-form := webapi.GetDocument().CreateElement("ul", nil)
+form := webapi.GetDocument().CreateElement("form", nil)
 sel := NewSelect()
 form.AppendChild(&sel.Roots()[0].Node)
 ```
