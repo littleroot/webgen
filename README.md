@@ -123,20 +123,45 @@ in the current component. For example:
 </div>
 ```
 
-The contents of `path/to/Other.html` will replace the `<include>` element
+The contents of `path/to/Other.html` will replace the `<include />` element
 in the generated code.
 
-The `path` attribute is required. It can either be:
+The `path` attribute is required. It can either be a relative path (not starting with `/`)
+or an absolute path (starting with `/`). If an absolute path is used, it is rooted at the path specified by the `--root` flag.
 
-* A relative path (not starting with `/`); or
-* An absolute path (starting with `/`).
-
-If an absolute path is used, it is resolved relative to the path specified by
-the `--root` flag.
+Additionally, a [`ref`](#the-ref-attribute) attribute may be specified.
 
 ### The `Roots` method
 
-TODO
+The generated component types satisfy this Go interface.
+
+```
+interface {
+	Roots() *[]dom.Element
+}
+```
+
+The `Roots` method returns the top-level elements in a component.
+(In many cases, there may only be a single top-level element, in which case
+the list will have a length of 1.)
+
+Examples:
+
+```
+// Append the Select component inside a <form>.
+form := webapi.GetDocument().CreateElement("ul", nil)
+sel := NewSelect()
+form.AppendChild(&sel.Roots()[0].Node)
+```
+
+```
+// Append the <li> elements from a component as children to a <ul> element.
+ul := webapi.GetDocument().CreateElement("ul", nil)
+items := NewItems()
+for _, r := range items.Roots() {
+	ul.AppendChild(&r.Node)
+}
+```
 
 ## License
 

@@ -91,7 +91,7 @@ func (o *orderedSet) has(v string) bool {
 	return ok
 }
 
-// forEach returns the set's elements in insertion order, earliest inserted
+// forEach iterates the set's elements in insertion order, earliest inserted
 // first.
 func (o *orderedSet) forEach(f func(string)) {
 	for _, v := range o.s {
