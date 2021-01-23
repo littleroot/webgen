@@ -1,6 +1,6 @@
 # `webgen`
 
-Write component views and styles in `.html` files. `webgen` generates
+Write component views and styles in HTML files, and `webgen` generates
 [`webapi`][2] package Go code to construct the components for the
 js/wasm architecture.
 
