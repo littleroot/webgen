@@ -43,13 +43,13 @@ the component in a top-level `<style>` element at the end of the file. `webgen`
 generates a single CSS file that is the concatenation of styles from all
 input files.
 
-Consider a simple component in `FooBar.html`.
+Consider a simple component in `Foo.html`.
 
 ```html
-<div class="FooBar"></div>
+<div class="Foo">DON'T PANIC</div>
 
 <style>
-.FooBar { font-family: "Inter"; }
+.Foo { font-family: "Inter"; }
 </style>
 ```
 
@@ -61,19 +61,21 @@ type in Go. (Hint: Use title-case or camel-case for the filenames to generate
 idiomatic Go code.)
 
 ```go
-type FooBar struct {
+type Foo struct {
 	roots []*dom.Element
 }
 
-func NewFooBar() *FooBar {
+func NewFoo() *Foo {
 	div0 := _document.CreateElement("div", nil)
-	div0.SetAttribute("class", "FooBar")
+	div0.SetAttribute("class", "Foo")
+	const stringliteral0 = "DON'T PANIC"
+	div0.SetTextContent(&stringliteral0)
 	return &Foo{
 		roots: []*dom.Element{div0},
 	}
 }
 
-func (v *FooBar) Roots() []*dom.Element {
+func (v *Foo) Roots() []*dom.Element {
 	return v.roots
 }
 ```
@@ -82,7 +84,7 @@ As mentioned earlier, `webgen` also generates CSS output that is the concatenati
 of styles from all input component files (in this example, just the single file).
 
 ```css
-.FooBar { font-family: "Inter"; }
+.Foo { font-family: "Inter"; }
 ```
 
 Use the `--outviews` and `--outcss` flags to specify the location
