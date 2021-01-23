@@ -123,11 +123,13 @@ in the current component. For example:
 </div>
 ```
 
-The contents of `path/to/Other.html` will replace the `<include />` element
-in the generated code.
+The contents of the component at `path/to/Other.html` will replace the
+`<include />` element in the generated code.
 
 The `path` attribute is required. It can either be a relative path (not starting with `/`)
-or an absolute path (starting with `/`). If an absolute path is used, it is rooted at the path specified by the `--root` flag.
+or an absolute path (starting with `/`). If a relative path is used, it is
+resolved relative to the current component's directory. If an absolute path is
+used, the path is rooted at the value specified by the `--root` flag.
 
 Additionally, a [`ref`](#the-ref-attribute) attribute may be specified.
 
