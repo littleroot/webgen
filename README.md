@@ -36,7 +36,7 @@ input files.
 
 Consider a simple component in `FooBar.html`.
 
-```
+```html
 <div class="FooBar"></div>
 
 <style>
@@ -51,7 +51,7 @@ filename with an uppercase letter, akin to naming an exported
 type in Go. (Hint: Use title-case or camel-case for the filenames to generate
 idiomatic Go code.)
 
-```
+```go
 type FooBar struct {
 	roots []*dom.Element
 }
@@ -72,7 +72,7 @@ func (v *FooBar) Roots() []*dom.Element {
 As mentioned earlier, Nausicaä also generates CSS output that is the concatenation
 of styles from all input component files (in this example, just the single file).
 
-```
+```css
 .FooBar { font-family: "Inter"; }
 ```
 
@@ -85,7 +85,7 @@ Refs allow access to an element of your component from Go code. For instance,
 you might want a reference to an element in your component in order to set
 its `textContent` dynamically or to add an event listener.
 
-```
+```html
 <div class="Notification">
 	<span ref="Message"></span>
 </div>
@@ -96,7 +96,7 @@ field's name is the `ref` attribute's value. Begin the `ref` attribute
 value with an uppercase letter to produce an exported field or with a
 lowercase letter to produce an unexported field.
 
-```
+```go
 type Notification struct {
 	Message *html.HTMLSpanElement
 	roots   []*dom.Element
@@ -105,7 +105,7 @@ type Notification struct {
 
 You can then access the element from your application code.
 
-```
+```go
 text := "Email archived."
 
 n := NewNotification()
@@ -117,7 +117,7 @@ n.Message.SetTextContent(&text)
 The `<include>` element can be used to include another component by its filepath
 in the current component. For example:
 
-```
+```html
 <div>
 	<include path="path/to/Other.html" />
 </div>
@@ -135,7 +135,7 @@ Additionally, a [`ref`](#the-ref-attribute) attribute may be specified.
 
 The generated component types satisfy this Go interface.
 
-```
+```go
 interface {
 	Roots() *[]dom.Element
 }
@@ -147,14 +147,14 @@ the list will have a length of 1.)
 
 Examples:
 
-```
+```go
 // Append the Select component inside a <form>.
 form := webapi.GetDocument().CreateElement("ul", nil)
 sel := NewSelect()
 form.AppendChild(&sel.Roots()[0].Node)
 ```
 
-```
+```go
 // Append the <li> elements from a component as children to a <ul> element.
 ul := webapi.GetDocument().CreateElement("ul", nil)
 items := NewItems()
