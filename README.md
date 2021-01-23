@@ -22,7 +22,7 @@ go get github.com/littleroot/nausicaa/cmd/nausicaa
 - [Basics](#basics): An overview
 - [The `ref` attribute](#the-ref-attribute): Obtain a reference to an element
 - [The `<include>` element](#the-include-element): Composition of components
-- [The `Roots` field](#the-roots-field): Access the top-level element(s) of a component
+- [The `Roots` method](#the-roots-method): Access the top-level element(s) of a component
 
 ### Basics
 
@@ -52,14 +52,14 @@ idiomatic Go code.)
 
 ```go
 type FooBar struct {
-	Roots []*dom.Element
+	roots []*dom.Element
 }
 
 func NewFooBar() *FooBar {
 	div0 := _document.CreateElement("div", nil)
 	div0.SetAttribute("class", "FooBar")
 	return &Foo{
-		Roots: []*dom.Element{div0},
+		roots: []*dom.Element{div0},
 	}
 }
 ```
@@ -76,7 +76,7 @@ to write the generated Go and generates CSS, respectively.
 
 ### The `ref` attribute
 
-Refs allow access to an element in your component from Go code. For instance,
+Refs allow access to an element of your component from Go code. For instance,
 you might want a reference to an element in your component in order to set
 its `textContent` dynamically or to add an event listener.
 
@@ -87,14 +87,14 @@ its `textContent` dynamically or to add an event listener.
 ```
 
 The generated Go type has a field that is a reference to the element. The
-field name comes from the `ref` attribute's value. Begin the `ref` attribute
+field's name is the `ref` attribute's value. Begin the `ref` attribute
 value with an uppercase letter to produce an exported field or with a
 lowercase letter to produce an unexported field.
 
 ```go
 type Notification struct {
 	Message *html.HTMLSpanElement
-	Roots   []*dom.Element
+	roots   []*dom.Element
 }
 ```
 
@@ -111,7 +111,7 @@ n.Message.SetTextContent(&text)
 
 TODO
 
-### The `Roots` field
+### The `Roots` method
 
 TODO
 

@@ -25,7 +25,7 @@ var (
 // source: testdata/standalone/attrs.html
 
 type attrs struct {
-	Roots []*dom.Element
+	roots []*dom.Element
 }
 
 func newAttrs() *attrs {
@@ -33,23 +33,23 @@ func newAttrs() *attrs {
 	input0.SetAttribute("type", "text")
 	input0.SetAttribute("class", "foo")
 	return &attrs{
-		Roots: []*dom.Element{input0},
+		roots: []*dom.Element{input0},
 	}
 }
 
 // source: testdata/include/relativePath.html
 
 type relativePath struct {
-	Roots []*dom.Element
+	roots []*dom.Element
 }
 
 func newRelativePath() *relativePath {
 	div0 := _document.CreateElement("div", nil)
 	include0 := newAttrs()
-	for _, r := range include0.Roots {
+	for _, r := range include0.roots {
 		div0.AppendChild(&r.Node)
 	}
 	return &relativePath{
-		Roots: []*dom.Element{div0},
+		roots: []*dom.Element{div0},
 	}
 }

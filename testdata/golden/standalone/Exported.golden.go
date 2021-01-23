@@ -25,13 +25,13 @@ var (
 // source: testdata/standalone/Exported.html
 
 type Exported struct {
-	Roots []*dom.Element
+	roots []*dom.Element
 }
 
 func NewExported() *Exported {
 	div0 := _document.CreateElement("div", nil)
 	div0.SetAttribute("class", "Exported")
 	return &Exported{
-		Roots: []*dom.Element{div0},
+		roots: []*dom.Element{div0},
 	}
 }

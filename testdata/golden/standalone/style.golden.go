@@ -25,13 +25,13 @@ var (
 // source: testdata/standalone/style.html
 
 type style struct {
-	Roots []*dom.Element
+	roots []*dom.Element
 }
 
 func newStyle() *style {
 	div0 := _document.CreateElement("div", nil)
 	div0.SetAttribute("class", "d")
 	return &style{
-		Roots: []*dom.Element{div0},
+		roots: []*dom.Element{div0},
 	}
 }

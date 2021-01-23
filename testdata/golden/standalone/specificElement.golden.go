@@ -25,7 +25,7 @@ var (
 // source: testdata/standalone/specificElement.html
 
 type specificElement struct {
-	Roots []*dom.Element
+	roots []*dom.Element
 }
 
 func newSpecificElement() *specificElement {
@@ -33,6 +33,6 @@ func newSpecificElement() *specificElement {
 	audio0 := _document.CreateElement("audio", nil)
 	div0.AppendChild(&audio0.Node)
 	return &specificElement{
-		Roots: []*dom.Element{div0},
+		roots: []*dom.Element{div0},
 	}
 }
