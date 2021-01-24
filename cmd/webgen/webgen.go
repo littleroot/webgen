@@ -25,7 +25,7 @@ defined in HTML.
 
 Usage:
    webgen [--outcss=<file>] [--outviews=<file>] [--package=<name>]
-          [--root=<dir>] <input-file>...
+          [--root=<dir>] (<input-file> | <input-directory>)...
    webgen (-h | --help)
 
 Flags:
@@ -37,10 +37,13 @@ Flags:
                        elements (default: ".")
 
 Example:
+   # Recursively find all *.html files in the "components/"" directory and use
+   # them as input. Write output to "ui.go" and "public/components.css" with
+   # package name "ui" for the Go code.
    webgen --package=ui \
           --outviews=ui.go \
           --outcss=public/components.css \
-          components/*.html
+          components/
 `
 
 var (
@@ -88,8 +91,8 @@ func main() {
 		defer outViews.Close()
 	}
 	if fOutCSS != "" {
-		outViews = createFile(fOutCSS)
-		defer outViews.Close()
+		outCSS = createFile(fOutCSS)
+		defer outCSS.Close()
 	}
 
 	opts := webgen.Options{
@@ -97,7 +100,31 @@ func main() {
 		Root:    fRoot,
 	}
 
-	views, css, err := webgen.Generate(args, opts)
+	var inFiles []string
+	for _, a := range args {
+		info, err := os.Stat(a)
+		if err != nil {
+			stderr.Printf("%s", err)
+			os.Exit(1)
+		}
+		if info.IsDir() {
+			if err := filepath.Walk(a, func(p string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+				if info.IsDir() || filepath.Ext(p) != ".html" {
+					return nil
+				}
+				inFiles = append(inFiles, p)
+				return nil
+			}); err != nil {
+				stderr.Printf("%s", err)
+				os.Exit(1)
+			}
+		}
+	}
+
+	views, css, err := webgen.Generate(inFiles, opts)
 	if err != nil {
 		stderr.Printf("%s", err)
 		os.Exit(1)

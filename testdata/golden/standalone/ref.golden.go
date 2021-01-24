@@ -31,7 +31,7 @@ type ref struct {
 
 func newRef() *ref {
 	a0 := _document.CreateElement("a", nil)
-	const stringliteral0 = "README"
+	stringliteral0 := "README"
 	a0.SetTextContent(&stringliteral0)
 	return &ref{
 		readme: html.HTMLAnchorElementFromJS(a0),

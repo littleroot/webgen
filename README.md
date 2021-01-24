@@ -67,7 +67,7 @@ type Foo struct {
 func NewFoo() *Foo {
 	div0 := _document.CreateElement("div", nil)
 	div0.SetAttribute("class", "Foo")
-	const stringliteral0 = "DON'T PANIC"
+	stringliteral0 := "DON'T PANIC"
 	div0.SetTextContent(&stringliteral0)
 	return &Foo{
 		roots: []*dom.Element{div0},
@@ -88,6 +88,9 @@ of styles from all input component files (in this example, just the single file)
 
 Use the `--outviews` and `--outcss` flags to specify the location
 to write the generated Go and generated CSS, respectively.
+
+All elements *must* have be closed: either use an explicit end tag
+(e.g., `<input type="text"></input>`) or use a self-closing tag (e.g., `<input type="text" />`)
 
 ### The `ref` attribute
 

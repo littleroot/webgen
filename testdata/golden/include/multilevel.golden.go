@@ -30,10 +30,10 @@ type multipleRoots struct {
 
 func newMultipleRoots() *multipleRoots {
 	li0 := _document.CreateElement("li", nil)
-	const stringliteral0 = "hello"
+	stringliteral0 := "hello"
 	li0.SetTextContent(&stringliteral0)
 	li1 := _document.CreateElement("li", nil)
-	const stringliteral1 = "world"
+	stringliteral1 := "world"
 	li1.SetTextContent(&stringliteral1)
 	return &multipleRoots{
 		roots: []*dom.Element{li0, li1},

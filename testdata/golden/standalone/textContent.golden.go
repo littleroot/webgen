@@ -31,19 +31,19 @@ type textContent struct {
 func newTextContent() *textContent {
 	article0 := _document.CreateElement("article", nil)
 	h10 := _document.CreateElement("h1", nil)
-	const stringliteral0 = "Title"
+	stringliteral0 := "Title"
 	h10.SetTextContent(&stringliteral0)
 	article0.AppendChild(&h10.Node)
 	p0 := _document.CreateElement("p", nil)
-	const stringliteral1 = "Lorem ipsum"
+	stringliteral1 := "Lorem ipsum"
 	p0.SetTextContent(&stringliteral1)
 	article0.AppendChild(&p0.Node)
 	p1 := _document.CreateElement("p", nil)
-	const stringliteral2 = "\u00a0\u00a0\u00a0"
+	stringliteral2 := "\u00a0\u00a0\u00a0"
 	p1.SetTextContent(&stringliteral2)
 	article0.AppendChild(&p1.Node)
 	p2 := _document.CreateElement("p", nil)
-	const stringliteral3 = "Lorem ipsum with newlines"
+	stringliteral3 := "Lorem ipsum with newlines"
 	p2.SetTextContent(&stringliteral3)
 	article0.AppendChild(&p2.Node)
 	return &textContent{
