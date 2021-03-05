@@ -139,7 +139,7 @@ func main() {
 }
 
 func createFile(p string) *os.File {
-	err := os.MkdirAll(filepath.Base(p), permDir)
+	err := os.MkdirAll(filepath.Dir(p), permDir)
 	if err != nil {
 		stderr.Printf("%s", err)
 		os.Exit(1)
