@@ -148,7 +148,8 @@ An `<include>` element may also optionally have a [`ref`](#the-ref-attribute) at
 
 ### The `Roots` method
 
-The generated component types satisfy this Go interface.
+The generated component types satisfy this Go interface. (The interface
+type is not defined in this package; you may define it yourself if you wish.)
 
 ```go
 type Component interface {
