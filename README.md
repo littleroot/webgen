@@ -8,15 +8,15 @@ Inspired by [tomato][1].
 
 For documentation, see below.
 
-For command line help text, including examples, run `webgen -h`.
+For command line help text, including example invocations, run `webgen -h`.
 
 ## Why?
 
-It is tedious, is difficult to verify correctness, and looks ugly to construct DOM
-with `webapi.GetDocument().CreateElement`/`AppendChild`.
+Construct DOM with `webapi.GetDocument().CreateElement`/`AppendChild` is tedious, looks ugly,
+and makes it difficult to verify correctness.
 
-So define your components in HTML, which doesn't have these drawbacks,
-and generate Go types and constructor functions for them.
+Instead, define your components in HTML (which doesn't have the above drawbacks)
+and generate Go types and constructor functions for the components.
 
 ## Install
 
@@ -35,7 +35,7 @@ go get github.com/littleroot/webgen/cmd/webgen
 
 ### Basics
 
-`webgen` generates Go code corresponding to component views
+`webgen` generates Go code corresponding to components
 specified in input `.html` files. The generated Go code uses the [`webapi`][2]
 package and its subpackages. A component file can optionally include CSS for
 the component in a top-level `<style>` element at the end of the file. `webgen`
@@ -89,7 +89,7 @@ of styles from all input component files (in this example, just the single file)
 Use the `--outviews` and `--outcss` flags to specify the location
 to write the generated Go and generated CSS, respectively.
 
-All elements *must* have be closed: either use an explicit end tag
+All elements *must* be closed: either use an explicit end tag
 (e.g., `<input type="text"></input>`) or use a self-closing tag (e.g., `<input type="text" />`)
 
 ### The `ref` attribute
@@ -120,7 +120,6 @@ You can then access the element from your application code.
 
 ```go
 text := "Email archived."
-
 n := NewNotification()
 n.Message.SetTextContent(&text)
 ```
