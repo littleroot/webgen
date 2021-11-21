@@ -12,11 +12,12 @@ For command line help text, including example invocations, run `webgen -h`.
 
 ## Why?
 
-Construct DOM with `webapi.GetDocument().CreateElement`/`AppendChild` is tedious, looks ugly,
-and makes it difficult to verify correctness.
+Constructing DOM with `webapi.GetDocument().CreateElement`/`AppendChild`
+is tedious, looks ugly, and makes it difficult to verify correctness.
 
-Instead, define your components in HTML (which doesn't have the above drawbacks)
-and generate Go types and constructor functions for the components.
+Instead, define your components in HTML (which doesn't have the above
+drawbacks) and generate Go types and constructor functions for the
+components.
 
 ## Install
 
