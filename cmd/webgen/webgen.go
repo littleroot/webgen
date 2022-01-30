@@ -143,7 +143,7 @@ func run(args []string) error {
 				return err
 			}
 		} else {
-			// assume it's a regular file.
+			// assume it's a file.
 			// we also don't check for a .html extension since this is an
 			// explicitly provided command line argument.
 			maybeAdd(a)
