@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -37,13 +38,13 @@ Flags:
                        elements (default: ".")
 
 Example:
-   # Recursively find all *.html files in the "components/"" directory and use
+   # Recursively find all *.html files in the "components" directory and use
    # them as input. Write output to "ui.go" and "public/components.css" with
    # package name "ui" for the Go code.
    webgen --package=ui \
           --outviews=ui.go \
           --outcss=public/components.css \
-          components/
+          components
 `
 
 var (
@@ -83,6 +84,13 @@ func main() {
 		os.Exit(2)
 	}
 
+	if err := run(args); err != nil {
+		stderr.Printf("%s", err)
+		os.Exit(1)
+	}
+}
+
+func run(args []string) error {
 	outViews := os.Stdout
 	outCSS := os.Stdout
 
@@ -101,41 +109,60 @@ func main() {
 	}
 
 	var inFiles []string
+	dedup := make(map[string]struct{})
+	maybeAdd := func(p string) {
+		if _, ok := dedup[p]; ok {
+			return // already present
+		}
+		dedup[p] = struct{}{}
+		inFiles = append(inFiles, p)
+	}
+
 	for _, a := range args {
 		info, err := os.Stat(a)
 		if err != nil {
-			stderr.Printf("%s", err)
-			os.Exit(1)
+			return err
 		}
 		if info.IsDir() {
 			if err := filepath.Walk(a, func(p string, info os.FileInfo, err error) error {
 				if err != nil {
 					return err
 				}
-				if info.IsDir() || filepath.Ext(p) != ".html" {
+				if info.IsDir() {
+					return nil // will be handled by recursive walk
+				}
+				if filepath.Ext(p) != ".html" {
 					return nil
+				}
+				if _, ok := dedup[p]; ok {
+					return nil // already present
 				}
 				inFiles = append(inFiles, p)
 				return nil
 			}); err != nil {
-				stderr.Printf("%s", err)
-				os.Exit(1)
+				return err
 			}
+		} else {
+			// assume it's a regular file.
+			// we also don't check for a .html extension since this is an
+			// explicitly provided command line argument.
+			maybeAdd(a)
 		}
 	}
 
 	views, css, err := webgen.Generate(inFiles, opts)
 	if err != nil {
-		stderr.Printf("%s", err)
-		os.Exit(1)
+		return err
 	}
 
 	if _, err := outViews.Write(views); err != nil {
-		stderr.Printf("write output views: %s", err)
+		return fmt.Errorf("write output views: %s", err)
 	}
 	if _, err := outCSS.Write(css); err != nil {
-		stderr.Printf("write output CSS: %s", err)
+		return fmt.Errorf("write output css: %s", err)
 	}
+
+	return nil
 }
 
 func createFile(p string) *os.File {
